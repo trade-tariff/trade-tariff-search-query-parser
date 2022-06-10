@@ -1,6 +1,5 @@
 # trade-tariff-search-query-parser
-Flask App to parse the search term queries  in trade-tarif typed in find_commodity page.
-
+Flask App to parse the search term queries the users type on Trade Tarif find_commodity page.
 
 ## Installation
 
@@ -9,16 +8,23 @@ Flask App to parse the search term queries  in trade-tarif typed in find_commodi
 python3 -m venv venv
 ```
 
+### Activate the environment
+
+```
+. ./venv/bin/activate
+```
+
 ### Install the requirements
 
 ```
 pip install -r requirements.txt
 ```
 
-### Run Flask Server
+## Run Flask Server
+set FLASK_ENV var
+
+export FLASK_ENV=development
 
 ```
 flask run
 ```
-
-
