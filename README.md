@@ -1,5 +1,5 @@
 # trade-tariff-search-query-parser
-Flask App to parse the search term queries the users type on Trade Tarif find_commodity page.
+The main goal of this Flask App is to parse the search term queries the users type on Trade Tarif find_commodity page.
 
 ## Installation
 
@@ -27,4 +27,17 @@ export FLASK_ENV=development
 
 ```
 flask run
+```
+
+## How to run tests
+This project uses [pytest](https://docs.pytest.org/), to run all the tests just run:
+
+```
+pytest
+```
+
+or you can specify the test file you to run:
+
+```
+pytest file_or_dir
 ```
