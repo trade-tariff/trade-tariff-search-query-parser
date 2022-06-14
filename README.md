@@ -13,7 +13,7 @@ python -m venv venv
 ### Activate the environment
 
 ```shell
-. ./venv/bin/activate # or . .
+. ./venv/bin/activate
 ```
 
 ### Install the requirements

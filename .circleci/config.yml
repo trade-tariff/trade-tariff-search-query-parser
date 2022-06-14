@@ -1,0 +1,36 @@
+version: 2.1
+
+jobs:
+  test:
+    docker:
+      - image: cimg/python:3.10.4
+    steps:
+      - checkout
+      - restore_cache:
+          key: deps-1.0.0-{{ checksum "requirements.txt" }}
+      - run:
+          name: "Setup environment"
+          command: |
+            python3 -m venv venv
+            . venv/bin/activate
+            pip install -r requirements.txt
+            python3 -m spacy download en_core_web_sm
+      - save_cache:
+          key: deps-1.0.0-{{ checksum "requirements.txt" }}
+          paths:
+            - "venv"
+      - run:
+          name: "Run tests"
+          command: |
+            . venv/bin/activate
+            pytest
+
+workflows:
+  ci:
+    jobs:
+      - test:
+          context: trade-tariff
+          filters:
+            branches:
+              ignore:
+                - main
