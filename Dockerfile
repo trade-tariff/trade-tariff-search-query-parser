@@ -1,15 +1,12 @@
-FROM python:3.10.5
+FROM python:3.10.5-slim-bullseye
 
-# TODO: if possible use the Alpine distribution
-# FROM python:3.10.5-alpine3.16
-
-WORKDIR /trade-tariff-search-query-parser
+WORKDIR /app
 
 COPY requirements.txt requirements.txt
 
-RUN pip3 install -r requirements.txt
+RUN pip install --no-cache-dir -r requirements.txt
 
-# Install the spaCy English dictionary
+# Install the spacy English dictionary
 RUN python -m spacy download en_core_web_sm
 
 COPY . .
