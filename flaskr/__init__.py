@@ -3,6 +3,7 @@ import os
 from flask import Flask
 
 from flaskr import tokenizer
+from flaskr import spelling_corrector as sc
 
 
 def create_app(test_config=None):
@@ -39,5 +40,11 @@ def create_app(test_config=None):
         healthcheck["healthy"] = healthy
 
         return healthcheck
+
+    @app.route("/correct-words/<string:term>", methods=['GET'])
+    def spelling_corrector(term):
+        words = sc.correct(term)
+
+        return { 'words': words }
 
     return app
