@@ -11,7 +11,9 @@ def create_app(test_config=None):
     app = Flask(__name__, instance_relative_config=True)
 
     # Initialize Spelling Corrector
-    spell_corr = spelling_corrector.SpellingCorrector(app)
+
+    spelling_train_path = os.path.join(app.root_path, "data", "spelling_train.txt")
+    spell_corr = spelling_corrector.SpellingCorrector(spelling_train_path)
 
     if test_config is None:
         # load the instance config, if it exists, when not testing

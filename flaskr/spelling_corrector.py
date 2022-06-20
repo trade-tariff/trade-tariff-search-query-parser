@@ -1,11 +1,9 @@
 import re
-import os
 from textblob.en import Spelling
 
 class SpellingCorrector:
-    def __init__(self, app):
-        path = os.path.join(app.root_path, "data", "spelling_train.txt")
-        self.spelling = Spelling(path=path)
+    def __init__(self, spelling_train_path):
+        self.spelling = Spelling(path=spelling_train_path)
 
     def correct(self, term):
         words = re.findall(r'\w+', term)
