@@ -2,47 +2,43 @@
 
 The main goal of this Flask App is to parse the search term queries the users type on Trade Tarif find_commodity page.
 
-## Installation
+### Create local env
 
-### Create local env:
-
-```shell
+```bash
 python -m venv venv
 ```
 
 ### Activate the environment
 
-```shell
+```bash
 . ./venv/bin/activate
 ```
 
 ### Install the requirements
 
-```shell
+```bash
 pip install -r requirements.txt
 spacy download en_core_web_sm
 ```
 
-## Run Flask Server
+### Run Flask Server
 
-set FLASK_ENV var
-
-export FLASK_ENV=development
-
-```shell
+```bash
 flask run
+export FLASK_ENV=development
+export FLASK_APP=flaskr
 ```
 
-## How to run tests
+### How to run tests
 
 This project uses [pytest](https://docs.pytest.org/), to run all the tests just run:
 
-```shell
+```bash
 pytest
 ```
 
 or you can specify the test file you to run:
 
-```
-pytest file_or_dir
+```bash
+pytest path/to/file_or_dir
 ```
