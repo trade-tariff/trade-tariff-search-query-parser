@@ -14,4 +14,4 @@ def test_get_tokes_returns_valid_json(client):
     assert "noun_chunks" in response_body["entities"]
 
     for token_type in ["all", "adjectives", "nouns", "verbs"]:
-      assert token_type in response_body["entities"]["tokens"]
+        assert token_type in response_body["entities"]["tokens"]
