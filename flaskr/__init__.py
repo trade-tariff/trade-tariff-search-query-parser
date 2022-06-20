@@ -46,15 +46,12 @@ def create_app(test_config=None):
 
         return healthcheck
 
-    @app.route("/correct-terms/<string:term>", methods=['GET'])
+    @app.route("/correct-terms/<string:term>", methods=["GET"])
     def correct_terms(term):
         corrected_terms = spell_corr.correct(term)
 
         return {
-                'entities': {
-                    'correct_terms': corrected_terms,
-                    'original_terms': term
-                    },
-                }
+            "entities": {"correct_terms": corrected_terms, "original_terms": term},
+        }
 
     return app
