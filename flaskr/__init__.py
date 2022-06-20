@@ -3,12 +3,15 @@ import os
 from flask import Flask
 
 from flaskr import tokenizer
-from flaskr import spelling_corrector as sc
+from flaskr import spelling_corrector
 
 
 def create_app(test_config=None):
-    # create and configure the app
+    # Create and configure the app
     app = Flask(__name__, instance_relative_config=True)
+
+    # Initialize Spelling Corrector
+    spell_corr = spelling_corrector.SpellingCorrector(app)
 
     if test_config is None:
         # load the instance config, if it exists, when not testing
@@ -41,10 +44,15 @@ def create_app(test_config=None):
 
         return healthcheck
 
-    @app.route("/correct-words/<string:term>", methods=['GET'])
-    def spelling_corrector(term):
-        words = sc.correct(term)
+    @app.route("/correct-terms/<string:term>", methods=['GET'])
+    def correct_terms(term):
+        corrected_terms = spell_corr.correct(term)
 
-        return { 'words': words }
+        return {
+                'entities': {
+                    'correct_terms': corrected_terms,
+                    'original_terms': term
+                    },
+                }
 
     return app
