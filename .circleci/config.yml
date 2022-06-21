@@ -17,6 +17,8 @@ commands:
         type: string
       environment_key:
         type: string
+      app_domain_prefix:
+        type: string
     steps:
       - checkout
       - tariff/cf-install:
@@ -64,11 +66,11 @@ commands:
 
             # Start sending traffic to new version
             cf map-route "$CF_APP-<< parameters.environment_key >>-dark" apps.internal -n "$CF_APP-<< parameters.environment_key >>"
-            cf map-route "$CF_APP-<< parameters.environment_key >>-dark" "<< parameters.environment_key >>.trade-tariff.service.gov.uk" --path "/api/search"
+            cf map-route "$CF_APP-<< parameters.environment_key >>-dark" "<< parameters.app_domain_prefix >>.trade-tariff.service.gov.uk" --path "/api/search"
 
             # Stop sending traffic to previous version
             cf unmap-route "$CF_APP-<< parameters.environment_key >>" apps.internal -n "$CF_APP-<< parameters.environment_key >>"
-            cf unmap-route "$CF_APP-<< parameters.environment_key >>" "<< parameters.environment_key >>.trade-tariff.service.gov.uk"  --path "/api/search"
+            cf unmap-route "$CF_APP-<< parameters.environment_key >>" "<< parameters.app_domain_prefix >>.trade-tariff.service.gov.uk"  --path "/api/search"
 
             # stop previous version
             cf stop "$CF_APP-<< parameters.environment_key >>"
@@ -174,6 +176,7 @@ jobs:
           docker_image_tag: "dev-$CIRCLE_SHA1"
           space: "development"
           environment_key: "dev"
+          app_domain_prefix: "dev"
       - sentry-release
   deploy_staging:
     docker:
@@ -189,6 +192,7 @@ jobs:
           docker_image_tag: $CIRCLE_SHA1
           space: "staging"
           environment_key: "staging"
+          app_domain_prefix: "staging"
       - sentry-release
   deploy_release_to_staging:
     docker:
@@ -198,6 +202,7 @@ jobs:
           docker_image_tag: $CIRCLE_TAG
           space: "staging"
           environment_key: "staging"
+          app_domain_prefix: "staging"
   deploy_production:
     docker:
       - image: cimg/python:3.10.4
@@ -208,6 +213,7 @@ jobs:
           docker_image_tag: $CIRCLE_TAG
           space: "production"
           environment_key: "production"
+          app_domain_prefix: "www"
       - sentry-release
       - tariff/notify-production-release:
           app-name: Search Query Parser
