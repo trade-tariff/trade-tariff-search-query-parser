@@ -4,7 +4,11 @@ WORKDIR /app
 
 COPY requirements.txt requirements.txt
 
-RUN pip install --no-cache-dir -r requirements.txt
+RUN pip install --no-cache-dir -r requirements.txt \
+  && apt-get update \
+  && apt-get install --assume-yes --quiet curl vim \
+  && apt-get clean
+
 
 # Install the spacy English dictionary
 RUN python -m spacy download en_core_web_sm
@@ -13,5 +17,4 @@ COPY . .
 
 ENV FLASK_ENV=production
 ENV FLASK_APP=flaskr
-
-CMD ["python3", "-m" , "flask", "run", "--host=0.0.0.0"]
+CMD ["waitress-serve", "--call", "flaskr:create_app"]
