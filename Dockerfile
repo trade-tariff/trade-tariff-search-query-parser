@@ -6,7 +6,7 @@ COPY requirements.txt requirements.txt
 
 RUN pip install --no-cache-dir -r requirements.txt \
   && apt-get update \
-  && apt-get install --assume-yes --quiet curl vim \
+  && apt-get install --assume-yes --quiet curl \
   && apt-get clean
 
 
