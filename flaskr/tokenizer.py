@@ -1,6 +1,7 @@
 import spacy
+import os
 
-nlp = spacy.load("en_core_web_sm")
+nlp = spacy.load(os.environ["SPACY_DICTIONARY"])
 
 
 def get_entities(term):

@@ -28,16 +28,16 @@ def create_app(test_config=None):
     except OSError:
         pass
 
-    @app.route("/tokens/<string:term>", methods=["GET"])
+    @app.route("/api/search/tokens/<string:term>", methods=["GET"])
     def tokens(term):
         entities = tokenizer.get_entities(term)
 
         return {"entities": entities}
 
-    @app.route("/healthcheck", methods=["GET"])
+    @app.route("/api/search/healthcheck", methods=["GET"])
     def healthcheck():
-        adjectives = tokenizer.get_entities("tall man")["tokens"]["adjectives"]
-        healthy = adjectives == ["tall"]
+        tokens = tokenizer.get_entities("tall man")["tokens"]["all"]
+        healthy = len(tokens) == 2
         sha = open("REVISION").read().strip()
 
         healthcheck = {}
@@ -46,7 +46,7 @@ def create_app(test_config=None):
 
         return healthcheck
 
-    @app.route("/correct-terms/<string:term>", methods=["GET"])
+    @app.route("/api/search/correct-terms/<string:term>", methods=["GET"])
     def correct_terms(term):
         corrected_terms = spell_corr.correct(term)
 
