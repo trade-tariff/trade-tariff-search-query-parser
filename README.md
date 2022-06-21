@@ -24,9 +24,10 @@ spacy download en_core_web_sm
 ### Run Flask Server
 
 ```bash
-flask run
+export SPACY_DICTIONARY=en_core_web_sm
 export FLASK_ENV=development
 export FLASK_APP=flaskr
+flask run
 ```
 
 ### How to run tests
