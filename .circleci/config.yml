@@ -37,8 +37,6 @@ commands:
             # Map dark route (private)
             cf map-route  "$CF_APP-<< parameters.environment_key >>-dark" apps.internal -n "$CF_APP-<< parameters.environment_key >>-dark"
 
-            # Enable routing from the frontend to this app
-            cf add-network-policy "$CF_FRONTEND_APP-<< parameters.environment_key >>" "$CF_APP-<< parameters.environment_key >>-dark" --protocol tcp --port 8080
 
             # Enable routing from the backend to this app
             cf add-network-policy "$CF_BACKEND_UK_APP-<< parameters.environment_key >>" "$CF_APP-<< parameters.environment_key >>-dark" --protocol tcp --port 8080
@@ -50,7 +48,7 @@ commands:
 
             APP_NAME="$CF_APP-<< parameters.environment_key >>-dark"
 
-            HTTPCODE=$(cf ssh $APP_NAME -c 'curl -s -o /dev/null -w "%{http_code}" http://localhost:8080/healthcheck')
+            HTTPCODE=$(cf ssh $APP_NAME -c 'curl -s -o /dev/null -w "%{http_code}" http://localhost:8080/api/search/healthcheck')
 
             if [ "$HTTPCODE" -ne 200 ];then
               echo "dark route not available, failing deploy ($HTTPCODE)"
@@ -65,10 +63,12 @@ commands:
             cf unmap-route "$CF_APP-<< parameters.environment_key >>-dark" apps.internal -n "$CF_APP-<< parameters.environment_key >>-dark"
 
             # Start sending traffic to new version
-            cf map-route  "$CF_APP-<< parameters.environment_key >>-dark" apps.internal -n "$CF_APP-<< parameters.environment_key >>"
+            cf map-route "$CF_APP-<< parameters.environment_key >>-dark" apps.internal -n "$CF_APP-<< parameters.environment_key >>"
+            cf map-route "$CF_APP-<< parameters.environment_key >>-dark" dev.trade-tariff.service.gov.uk --path "/api/search"
 
             # Stop sending traffic to previous version
-            cf unmap-route  "$CF_APP-<< parameters.environment_key >>" apps.internal -n "$CF_APP-<< parameters.environment_key >>"
+            cf unmap-route "$CF_APP-<< parameters.environment_key >>" apps.internal -n "$CF_APP-<< parameters.environment_key >>"
+            cf unmap-route "$CF_APP-<< parameters.environment_key >>" dev.trade-tariff.service.gov.uk --path "/api/search"
 
             # stop previous version
             cf stop "$CF_APP-<< parameters.environment_key >>"
