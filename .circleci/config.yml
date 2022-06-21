@@ -64,11 +64,11 @@ commands:
 
             # Start sending traffic to new version
             cf map-route "$CF_APP-<< parameters.environment_key >>-dark" apps.internal -n "$CF_APP-<< parameters.environment_key >>"
-            cf map-route "$CF_APP-<< parameters.environment_key >>-dark" dev.trade-tariff.service.gov.uk --path "/api/search"
+            cf map-route "$CF_APP-<< parameters.environment_key >>-dark" "<< parameters.environment_key >>.trade-tariff.service.gov.uk" --path "/api/search"
 
             # Stop sending traffic to previous version
             cf unmap-route "$CF_APP-<< parameters.environment_key >>" apps.internal -n "$CF_APP-<< parameters.environment_key >>"
-            cf unmap-route "$CF_APP-<< parameters.environment_key >>" dev.trade-tariff.service.gov.uk --path "/api/search"
+            cf unmap-route "$CF_APP-<< parameters.environment_key >>" "<< parameters.environment_key >>.trade-tariff.service.gov.uk"  --path "/api/search"
 
             # stop previous version
             cf stop "$CF_APP-<< parameters.environment_key >>"
@@ -162,7 +162,7 @@ jobs:
             docker push $ECR_REPO/$IMAGE_NAME:$DOCKER_TAG
   deploy_development:
     docker:
-      - image: cimg/ruby:3.1.2
+      - image: cimg/python:3.10.4
     environment:
       SENTRY_ENVIRONMENT: "development"
     steps:
@@ -175,6 +175,45 @@ jobs:
           space: "development"
           environment_key: "dev"
       - sentry-release
+  deploy_staging:
+    docker:
+      - image: cimg/python:3.10.4
+    environment:
+      SENTRY_ENVIRONMENT: "staging"
+    steps:
+      - queue/until_front_of_line:
+          time: '10'
+          consider-branch: true
+          dont-quit: true
+      - deploy:
+          docker_image_tag: $CIRCLE_SHA1
+          space: "staging"
+          environment_key: "staging"
+      - sentry-release
+  deploy_release_to_staging:
+    docker:
+      - image: cimg/python:3.10.4
+    steps:
+      - deploy:
+          docker_image_tag: $CIRCLE_TAG
+          space: "staging"
+          environment_key: "staging"
+  deploy_production:
+    docker:
+      - image: cimg/python:3.10.4
+    environment:
+      SENTRY_ENVIRONMENT: "production"
+    steps:
+      - deploy:
+          docker_image_tag: $CIRCLE_TAG
+          space: "production"
+          environment_key: "production"
+      - sentry-release
+      - tariff/notify-production-release:
+          app-name: Search Query Parser
+          slack-channel: trade_tariff
+          release-tag: $CIRCLE_TAG
+
 workflows:
   ci:
     jobs:
@@ -203,3 +242,58 @@ workflows:
           requires:
             - build_dev
             - test
+      - build:
+          name: build_live
+          context: trade-tariff
+          filters:
+            branches:
+              only:
+                - main
+      - deploy_staging:
+          context: trade-tariff
+          filters:
+            branches:
+              only:
+                - main
+          requires:
+            - build_live
+      - hold_create_release:
+          type: approval
+          filters:
+            branches:
+              only:
+                - main
+          requires:
+            - deploy_staging
+      - tariff/create-production-release:
+          context: trade-tariff
+          image-name: tariff-search-query-parser
+          filters:
+            branches:
+              only:
+                - main
+          requires:
+            - hold_create_release
+      - deploy_release_to_staging:
+          context: trade-tariff
+          filters:
+            tags:
+              only: /^release-202[\d-]+/
+            branches:
+              ignore: /.*/
+      - hold_deploy_production:
+          type: approval
+          filters:
+            tags:
+              only: /^release-202[\d-]+/
+            branches:
+              ignore: /.*/
+      - deploy_production:
+          context: trade-tariff
+          filters:
+            tags:
+              only: /^release-202[\d-]+/
+            branches:
+              ignore: /.*/
+          requires:
+            - hold_deploy_production
