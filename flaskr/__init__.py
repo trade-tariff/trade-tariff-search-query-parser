@@ -36,8 +36,8 @@ def create_app(test_config=None):
 
     @app.route("/api/search/healthcheck", methods=["GET"])
     def healthcheck():
-        adjectives = tokenizer.get_entities("tall man")["tokens"]["adjectives"]
-        healthy = adjectives == ["tall"]
+        tokens = tokenizer.get_entities("tall man")["tokens"]["all"]
+        healthy = len(tokens) == 2
         sha = open("REVISION").read().strip()
 
         healthcheck = {}
