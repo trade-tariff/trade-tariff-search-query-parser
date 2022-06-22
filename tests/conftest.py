@@ -8,7 +8,9 @@ from flaskr import create_app
 def app():
     app = create_app()
     app.config.update(
-        {"TESTING": True,}
+        {
+            "TESTING": True,
+        }
     )
 
     f = open("REVISION", "a")
