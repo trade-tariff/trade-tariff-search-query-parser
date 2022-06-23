@@ -106,6 +106,17 @@ commands:
               /usr/bin/true # prevent sentry outage from blocking deploys - see HOTT-1570
 
 jobs:
+  lint:
+      docker:
+        - image: cimg/python:3.10.4
+      steps:
+          - checkout
+          - run:
+              name: install flake8
+              command: pip install flake8==4.0.1
+          - run:
+              name: run flake8
+              command: flake8 .
   test:
     docker:
       - image: cimg/python:3.10.4
@@ -223,6 +234,12 @@ jobs:
 workflows:
   ci:
     jobs:
+      - lint:
+          filters:
+            branches:
+              ignore:
+                - main
+                - /^dependabot\/.*/
       - build:
           name: build_dev
           context: trade-tariff
