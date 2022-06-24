@@ -1,6 +1,6 @@
 import os
 
-from flask import Flask
+from flask import Flask, request
 
 from flaskr import tokenizer
 from flaskr import spelling_corrector
@@ -30,11 +30,15 @@ def create_app(test_config=None):
 
     api_prefix = "/api/search/"
 
-    @app.route(f"{api_prefix}/tokens/<string:term>", methods=["GET"])
-    def tokens(term):
-        entities = tokenizer.get_entities(term)
+    @app.route(f"{api_prefix}/tokens", methods=["GET"])
+    def tokens():
+        term = request.args.get("q", default="", type=str)
 
-        return {"entities": entities}
+        if term == "":
+            return "Error: the query params is empty.", 400
+        else:
+            entities = tokenizer.get_entities(term)
+            return {"entities": entities}
 
     @app.route(f"{api_prefix}/healthcheck", methods=["GET"])
     def healthcheck():
