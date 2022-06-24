@@ -36,9 +36,9 @@ def create_app(test_config=None):
 
         if term == "":
             return "Error: the query params is empty.", 400
-        else:
-            entities = tokenizer.get_entities(term)
-            return {"entities": entities}
+
+        entities = tokenizer.get_entities(term)
+        return {"entities": entities}
 
     @app.route(f"{api_prefix}/correct-terms", methods=["GET"])
     def correct_terms():
@@ -46,12 +46,10 @@ def create_app(test_config=None):
 
         if term == "":
             return "Error: the query params is empty.", 400
-        else:
-            corrected_terms = spell_corr.correct(term)
 
-            return {
-                "entities": {"correct_terms": corrected_terms, "original_terms": term}
-            }
+        corrected_terms = spell_corr.correct(term)
+
+        return {"entities": {"correct_terms": corrected_terms, "original_terms": term}}
 
     @app.route(f"{api_prefix}/healthcheck", methods=["GET"])
     def healthcheck():
