@@ -20,7 +20,7 @@ def test_get_tokens_returns_valid_json(client):
 
 
 # When query is empty
-def test_get_tokens_returns_400_when_query_is_(client):
+def test_get_tokens_returns_400(client):
     query = ""
     response = client.get(f"/api/search/tokens?q={query}")
 
