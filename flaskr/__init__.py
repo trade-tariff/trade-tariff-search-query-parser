@@ -1,6 +1,6 @@
 import os
 
-from flask import Flask
+from flask import Flask, request
 
 from flaskr import tokenizer
 from flaskr import spelling_corrector
@@ -30,11 +30,26 @@ def create_app(test_config=None):
 
     api_prefix = "/api/search/"
 
-    @app.route(f"{api_prefix}/tokens/<string:term>", methods=["GET"])
-    def tokens(term):
-        entities = tokenizer.get_entities(term)
+    @app.route(f"{api_prefix}/tokens", methods=["GET"])
+    def tokens():
+        term = request.args.get("q", default="", type=str)
 
+        if term == "":
+            return "Error: the query params is empty.", 400
+
+        entities = tokenizer.get_entities(term)
         return {"entities": entities}
+
+    @app.route(f"{api_prefix}/correct-terms", methods=["GET"])
+    def correct_terms():
+        term = request.args.get("q", default="", type=str)
+
+        if term == "":
+            return "Error: the query params is empty.", 400
+
+        corrected_terms = spell_corr.correct(term)
+
+        return {"entities": {"correct_terms": corrected_terms, "original_terms": term}}
 
     @app.route(f"{api_prefix}/healthcheck", methods=["GET"])
     def healthcheck():
@@ -47,13 +62,5 @@ def create_app(test_config=None):
         healthcheck["healthy"] = healthy
 
         return healthcheck
-
-    @app.route(f"{api_prefix}/correct-terms/<string:term>", methods=["GET"])
-    def correct_terms(term):
-        corrected_terms = spell_corr.correct(term)
-
-        return {
-            "entities": {"correct_terms": corrected_terms, "original_terms": term},
-        }
 
     return app
