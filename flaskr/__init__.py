@@ -3,7 +3,7 @@ import os
 from flask import Flask, request
 
 from flaskr import tokenizer
-from flaskr import spelling_corrector
+from flaskr.spelling_corrector import SpellingCorrector
 
 
 def create_app(test_config=None):
@@ -13,7 +13,7 @@ def create_app(test_config=None):
     # Initialize Spelling Corrector
 
     spelling_train_path = os.path.join(app.root_path, "data", "spelling_train.txt")
-    spell_corr = spelling_corrector.SpellingCorrector(spelling_train_path)
+    spell_corrector = SpellingCorrector(spelling_train_path)
 
     if test_config is None:
         # load the instance config, if it exists, when not testing
@@ -28,32 +28,29 @@ def create_app(test_config=None):
     except OSError:
         pass
 
-    api_prefix = "/api/search/"
+    api_prefix = "/api/search"
 
     @app.route(f"{api_prefix}/tokens", methods=["GET"])
     def tokens():
-        term = request.args.get("q", default="", type=str)
+        search_query = request.args.get("q", default="", type=str)
 
-        if term == "":
+        if search_query == "":
             return "Error: the query params is empty.", 400
 
-        entities = tokenizer.get_entities(term)
-        return {"entities": entities}
+        corrected_search_query = spell_corrector.correct(search_query)
 
-    @app.route(f"{api_prefix}/correct-terms", methods=["GET"])
-    def correct_terms():
-        term = request.args.get("q", default="", type=str)
+        result = {}
+        result["original_search_query"] = search_query
+        result["corrected_search_query"] = corrected_search_query
 
-        if term == "":
-            return "Error: the query params is empty.", 400
+        tokens = tokenizer.get_tokens(corrected_search_query)
+        result["tokens"] = tokens
 
-        corrected_terms = spell_corr.correct(term)
-
-        return {"entities": {"correct_terms": corrected_terms, "original_terms": term}}
+        return result
 
     @app.route(f"{api_prefix}/healthcheck", methods=["GET"])
     def healthcheck():
-        tokens = tokenizer.get_entities("tall man")["tokens"]["all"]
+        tokens = tokenizer.get_tokens("tall man")["all"]
         healthy = len(tokens) == 2
         sha = open("REVISION").read().strip()
 

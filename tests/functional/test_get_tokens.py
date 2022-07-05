@@ -13,10 +13,11 @@ def test_get_tokens_returns_valid_json(client):
 
     response_body = response.json
 
-    assert "noun_chunks" in response_body["entities"]
+    for token_type in ["all", "adjectives", "nouns", "verbs", "noun_chunks"]:
+        assert token_type in response_body["tokens"]
 
-    for token_type in ["all", "adjectives", "nouns", "verbs"]:
-        assert token_type in response_body["entities"]["tokens"]
+    for search_query in ["original_search_query", "corrected_search_query"]:
+        assert search_query in response_body
 
 
 # When query is empty
