@@ -15,4 +15,4 @@ class SpellingCorrector:
             corrected_term = self.spelling.suggest(word)[0][0]
             corrected_terms.append(corrected_term)
 
-        return corrected_terms
+        return " ".join(corrected_terms)
