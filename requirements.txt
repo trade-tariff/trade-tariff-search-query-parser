@@ -38,9 +38,9 @@ thinc==8.0.17
 tomli==2.0.1
 tqdm==4.64.0
 typer==0.4.2
-typing_extensions==4.2.0
+typing_extensions==4.3.0
 urllib3==1.26.9
 waitress==2.1.2
 wasabi==0.9.1
 Werkzeug==2.1.2
-zipp==3.8.0
+zipp==3.8.1
