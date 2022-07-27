@@ -5,19 +5,19 @@ The main goal of this Flask App is to parse the search term queries the users ty
 ### Create local env
 
 ```bash
-python -m venv venv
+python -m venv dev
 ```
 
 ### Activate the environment
 
 ```bash
-. ./venv/bin/activate
+. ./dev/bin/activate
 ```
 
 ### Install the requirements
 
 ```bash
-pip install -r requirements.txt
+pip install -r requirements/dev.txt
 spacy download en_core_web_sm
 ```
 
