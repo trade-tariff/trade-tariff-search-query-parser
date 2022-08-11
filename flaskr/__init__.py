@@ -34,9 +34,6 @@ def create_app(test_config=None):
     def tokens():
         search_query = request.args.get("q", default="", type=str)
 
-        if search_query == "":
-            return "Error: the query params is empty.", 400
-
         corrected_search_query = spell_corrector.correct(search_query)
 
         result = {}
