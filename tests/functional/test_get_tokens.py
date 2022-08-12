@@ -21,9 +21,8 @@ def test_get_tokens_returns_valid_json(client):
 
 
 # When query is empty
-def test_get_tokens_returns_400(client):
+def test_get_tokens_returns_200(client):
     query = ""
     response = client.get(f"/api/search/tokens?q={query}")
 
-    assert response.status_code == 400
-    assert response.text == "Error: the query params is empty."
+    assert response.status_code == 200
