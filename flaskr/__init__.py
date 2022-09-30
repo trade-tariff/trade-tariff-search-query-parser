@@ -12,7 +12,7 @@ def create_app(test_config=None):
 
     # Initialize Spelling Corrector
 
-    spelling_train_path = os.path.join(app.root_path, "data", "spelling_train.txt")
+    spelling_train_path = os.path.join(app.root_path, "data", "spelling-model.txt")
     spell_corrector = SpellingCorrector(spelling_train_path)
 
     if test_config is None:
