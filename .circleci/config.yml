@@ -113,7 +113,7 @@ jobs:
           - checkout
           - run:
               name: install flake8
-              command: pip install flake8==4.0.1
+              command: pip install flake8==5.0.4
           - run:
               name: run flake8
               command: flake8 .
