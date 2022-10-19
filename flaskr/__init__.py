@@ -11,7 +11,6 @@ def create_app(test_config=None):
     app = Flask(__name__, instance_relative_config=True)
 
     # Initialize Spelling Corrector
-
     spelling_train_path = os.path.join(app.root_path, "data", "spelling-model.txt")
     spell_corrector = SpellingCorrector(spelling_train_path)
 
@@ -33,8 +32,8 @@ def create_app(test_config=None):
     @app.route(f"{api_prefix}/tokens", methods=["GET"])
     def tokens():
         search_query = request.args.get("q", default="", type=str)
-
-        corrected_search_query = spell_corrector.correct(search_query)
+        spell = request.args.get("spell", default="1", type=str) == "1"
+        corrected_search_query = spell_corrector.correct(search_query) if spell else search_query
 
         result = {}
         result["original_search_query"] = search_query

@@ -105,6 +105,39 @@ commands:
               sentry-cli releases deploys $SENTRY_RELEASE new -e $SENTRY_ENVIRONMENT ||
               /usr/bin/true # prevent sentry outage from blocking deploys - see HOTT-1570
 
+
+  smoketest:
+    parameters:
+      space:
+        type: string
+    steps:
+      - run:
+          name: "Checkout tests repo"
+          command: git clone --depth=1 "https://github.com/trade-tariff/trade-tariff-testing/"
+      - restore_cache:
+          keys:
+            - v1-smoketest-deps-{{ checksum "trade-tariff-testing/yarn.lock" }}
+      - run:
+          name: "Install NPM packages"
+          command: "cd trade-tariff-testing && yarn install"
+      - save_cache:
+          key: v1-smoketest-deps-{{ checksum "trade-tariff-testing/yarn.lock" }}
+          paths:
+            - trade-tariff-testing/node_modules
+            - /root/.cache/Cypress
+      - run:
+          name: "Cypress Smoke tests"
+          command: |
+            cd trade-tariff-testing
+
+            if [[ << parameters.space >> = "staging" ]]; then
+              yarn run staging-tariff-search-query-parser-smoketests
+            elif [[ << parameters.space >> = "development" ]]; then
+              yarn run dev-tariff-search-query-parser-smoketests
+            else
+              echo "You specified an invalid space"
+              exit 1
+            fi
 jobs:
   lint:
       docker:
@@ -189,6 +222,7 @@ jobs:
           environment_key: "dev"
           app_domain_prefix: "dev"
       - sentry-release
+
   deploy_staging:
     docker:
       - image: cimg/python:3.10.4
@@ -231,6 +265,13 @@ jobs:
           slack-channel: trade_tariff
           release-tag: $CIRCLE_TAG
 
+
+  smoketest_dev:
+    docker:
+      - image: "cypress/base:16.5.0"
+    steps:
+      - smoketest:
+          space: development
 workflows:
   ci:
     jobs:
@@ -265,6 +306,17 @@ workflows:
           requires:
             - build_dev
             - test
+      - smoketest_dev:
+          name: smoketest_dev
+          context: trade-tariff
+          filters:
+            branches:
+              ignore:
+                - main
+                - /^hotfix\/.+/
+                - /^dependabot\/.*/
+          requires:
+            - deploy_development
       - build:
           name: build_live
           context: trade-tariff
