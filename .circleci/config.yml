@@ -113,8 +113,7 @@ commands:
     steps:
       - run:
           name: "Checkout tests repo"
-          # TODO: Once we've merged the testing repo smoke tests we should remove the --branch switch
-          command: git clone --depth=1 --branch searchQueryParserSmokeTests "https://github.com/trade-tariff/trade-tariff-testing/"
+          command: git clone --depth=1 "https://github.com/trade-tariff/trade-tariff-testing/"
       - restore_cache:
           keys:
             - v1-smoketest-deps-{{ checksum "trade-tariff-testing/yarn.lock" }}

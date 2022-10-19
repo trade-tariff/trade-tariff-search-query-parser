@@ -33,11 +33,7 @@ def create_app(test_config=None):
     def tokens():
         search_query = request.args.get("q", default="", type=str)
         spell = request.args.get("spell", default="1", type=str) == "1"
-
-        if spell:
-            corrected_search_query = spell_corrector.correct(search_query)
-        else:
-            corrected_search_query = search_query
+        corrected_search_query = spell_corrector.correct(search_query) if spell else search_query
 
         result = {}
         result["original_search_query"] = search_query
