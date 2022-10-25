@@ -25,7 +25,7 @@ smart-open==5.2.1
 spacy==3.4.1
 spacy-legacy==3.0.10
 spacy-loggers==1.0.3
-srsly==2.4.4
+srsly==2.4.5
 textblob==0.17.1
 thinc==8.1.5
 tqdm==4.64.1
