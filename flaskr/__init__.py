@@ -1,5 +1,5 @@
 import os
-
+from flaskr import error_logging
 from flask import Flask, request
 
 from flaskr import tokenizer
@@ -7,6 +7,8 @@ from flaskr.spelling_corrector import SpellingCorrector
 
 
 def create_app(test_config=None):
+    error_logging.setup_sentry()
+
     # Create and configure the app
     app = Flask(__name__, instance_relative_config=True)
 
