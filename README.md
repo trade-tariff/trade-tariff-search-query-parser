@@ -18,7 +18,7 @@ python -m venv dev
 
 ```bash
 pip install -r requirements/dev.txt
-spacy download en_core_web_sm
+spacy download en_core_web_md
 ```
 
 ### Run Flask Server
