@@ -141,7 +141,7 @@ commands:
 jobs:
   lint:
       docker:
-        - image: cimg/python:3.11.1
+        - image: cimg/python:3.10.4
       steps:
           - checkout
           - run:
@@ -152,7 +152,7 @@ jobs:
               command: flake8 .
   test:
     docker:
-      - image: cimg/python:3.11.1
+      - image: cimg/python:3.10.4
     environment:
       SPACY_DICTIONARY: en_core_web_sm
     steps:
@@ -162,10 +162,10 @@ jobs:
       - run:
           name: "Setup environment"
           command: |
-            python -m venv venv
+            python3 -m venv venv
             . venv/bin/activate
             pip install -r requirements/test.txt
-            python -m spacy download $SPACY_DICTIONARY
+            python3 -m spacy download $SPACY_DICTIONARY
       - save_cache:
           key: deps-1.0.0-{{ checksum "requirements/common.txt" }}-{{ checksum "requirements/test.txt" }}
           paths:
@@ -182,7 +182,7 @@ jobs:
         default: false
         type: boolean
     docker:
-      - image: cimg/python:3.11.1
+      - image: cimg/python:3.10.4
     steps:
       - checkout
       - setup_remote_docker:
@@ -208,7 +208,7 @@ jobs:
             docker push $ECR_REPO/$IMAGE_NAME:$DOCKER_TAG
   deploy_development:
     docker:
-      - image: cimg/python:3.11.1
+      - image: cimg/python:3.10.4
     environment:
       SENTRY_ENVIRONMENT: "development"
     steps:
@@ -225,7 +225,7 @@ jobs:
 
   deploy_staging:
     docker:
-      - image: cimg/python:3.11.1
+      - image: cimg/python:3.10.4
     environment:
       SENTRY_ENVIRONMENT: "staging"
     steps:
@@ -241,7 +241,7 @@ jobs:
       - sentry-release
   deploy_release_to_staging:
     docker:
-      - image: cimg/python:3.11.1
+      - image: cimg/python:3.10.4
     steps:
       - deploy:
           docker_image_tag: $CIRCLE_TAG
@@ -250,7 +250,7 @@ jobs:
           app_domain_prefix: "staging"
   deploy_production:
     docker:
-      - image: cimg/python:3.11.1
+      - image: cimg/python:3.10.4
     environment:
       SENTRY_ENVIRONMENT: "production"
     steps:
