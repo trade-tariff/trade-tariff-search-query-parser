@@ -34,6 +34,6 @@ typing_extensions==4.4.0
 urllib3==1.26.13
 wasabi==0.10.1
 Werkzeug==2.2.2
-sentry-sdk==1.11.0
+sentry-sdk==1.12.1
 blinker==1.5
 
