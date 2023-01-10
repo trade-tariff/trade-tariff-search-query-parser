@@ -9,12 +9,8 @@ from flaskr.spelling_corrector import SpellingCorrector
 def create_app(test_config=None):
     error_logging.setup_sentry()
 
-    # Create and configure the app
     app = Flask(__name__, instance_relative_config=True)
-
-    # Initialize Spelling Corrector
-    spelling_train_path = os.path.join(app.root_path, "data", "spelling-model.txt")
-    spell_corrector = SpellingCorrector(spelling_train_path)
+    spell_corrector = SpellingCorrector.build()
 
     if test_config is None:
         # load the instance config, if it exists, when not testing
@@ -35,7 +31,9 @@ def create_app(test_config=None):
     def tokens():
         search_query = request.args.get("q", default="", type=str)
         spell = request.args.get("spell", default="1", type=str) == "1"
-        corrected_search_query = spell_corrector.correct(search_query) if spell else search_query
+        corrected_search_query = (
+            spell_corrector.correct(search_query) if spell else search_query
+        )
 
         result = {}
         result["original_search_query"] = search_query
@@ -50,11 +48,19 @@ def create_app(test_config=None):
     def healthcheck():
         tokens = tokenizer.get_tokens("tall man")["all"]
         healthy = len(tokens) == 2
-        sha = open("REVISION").read().strip()
+        using_fallback = (
+            False
+            if os.path.exists(path=SpellingCorrector.SPELLING_MODEL_FILEPATH)
+            else True
+        )
+        sha = (
+            open("REVISION").read().strip() if os.path.exists("REVISION") else "unknown"
+        )
 
         healthcheck = {}
         healthcheck["git_sha1"] = sha
         healthcheck["healthy"] = healthy
+        healthcheck["using_fallback"] = using_fallback
 
         return healthcheck
 
