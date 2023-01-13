@@ -10,7 +10,7 @@ def create_app(test_config=None):
     error_logging.setup_sentry()
 
     app = Flask(__name__, instance_relative_config=True)
-    spell_corrector = SpellingCorrector.build()
+    spell_corrector = SpellingCorrector()
 
     if test_config is None:
         # load the instance config, if it exists, when not testing
@@ -46,6 +46,8 @@ def create_app(test_config=None):
 
     @app.route(f"{api_prefix}/healthcheck", methods=["GET"])
     def healthcheck():
+        spell_corrector.load_spelling()
+
         tokens = tokenizer.get_tokens("tall man")["all"]
         healthy = len(tokens) == 2
         using_fallback = (

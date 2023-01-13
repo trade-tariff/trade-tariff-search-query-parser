@@ -10,10 +10,12 @@ class SpellingCorrector:
     SPELLING_MODEL_FALLBACK_FILEPATH = "config/data/spelling-model-fallback.txt"
     SPELLING_MODEL_OBJECT_PATH = "spelling-corrector/spelling-model.txt"
 
-    def __init__(self, spelling):
-        self._spelling = spelling
+    def __init__(self):
+        self._spelling = None
 
     def correct(self, term):
+        self.load_spelling()
+
         words = re.findall(r"\w+", term)
 
         corrected_terms = []
@@ -24,28 +26,24 @@ class SpellingCorrector:
 
         return " ".join(corrected_terms)
 
-    @classmethod
-    def build(cls):
-        spelling = Spelling(SpellingCorrector.SPELLING_MODEL_FALLBACK_FILEPATH)
-        corrector = SpellingCorrector(spelling)
+    def load_spelling(self):
+        if not self._spelling:
+            spelling = Spelling(SpellingCorrector.SPELLING_MODEL_FALLBACK_FILEPATH)
 
-        SpellingCorrector.download_file()
+            self.download_file()
 
-        try:
-            spelling = Spelling(SpellingCorrector.SPELLING_MODEL_FILEPATH)
-            spelling.load()
+            if os.path.exists(SpellingCorrector.SPELLING_MODEL_FILEPATH):
+                try:
+                    spelling = Spelling(SpellingCorrector.SPELLING_MODEL_FILEPATH)
+                except Exception:
+                    pass
 
-            corrector = SpellingCorrector(spelling)
-        except Exception:
-            pass
+            self._spelling = spelling
 
-        return corrector
-
-    @classmethod
-    def download_file(cls):
+    def download_file(self):
         if not os.getenv("FLASK_ENV") == "test":
             try:
-                bucket_name = os.getenv("SPELLING_CORRECTOR_BUCKET_NAME")
+                bucket_name = os.getenv("SPELLING_CORRECTOR_BUCKET_NAME") or ""
                 s3_client = boto3.client("s3")
                 s3_client.download_file(
                     bucket_name,
