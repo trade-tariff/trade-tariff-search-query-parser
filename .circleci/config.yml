@@ -280,7 +280,7 @@ workflows:
             branches:
               ignore:
                 - main
-                - /^dependabot\/.*/
+                - /^dependabot/(?!docker/).*/
       - build:
           name: build_dev
           context: trade-tariff
@@ -289,7 +289,7 @@ workflows:
             branches:
               ignore:
                 - main
-                - /^dependabot\/.*/
+                - /^dependabot/(?!docker/).*/
       - test:
           context: trade-tariff
           filters:
@@ -302,7 +302,7 @@ workflows:
             branches:
               ignore:
                 - main
-                - /^dependabot\/.*/
+                - /^dependabot/(?!docker/).*/
           requires:
             - build_dev
             - test
@@ -314,7 +314,7 @@ workflows:
               ignore:
                 - main
                 - /^hotfix\/.+/
-                - /^dependabot\/.*/
+                - /^dependabot/(?!docker/).*/
           requires:
             - deploy_development
       - build:
