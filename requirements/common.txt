@@ -1,4 +1,4 @@
-boto3==1.26.60
+boto3==1.26.70
 botocore==1.29.69
 blis==0.7.8
 catalogue==2.0.8
