@@ -134,7 +134,7 @@ commands:
 jobs:
   lint:
       docker:
-        - image: cimg/python:3.10.4
+        - image: cimg/python:3.11.2
       steps:
           - checkout
           - run:
@@ -145,7 +145,7 @@ jobs:
               command: flake8 .
   test:
     docker:
-      - image: cimg/python:3.10.4
+      - image: cimg/python:3.11.2
     environment:
       SPACY_DICTIONARY: en_core_web_sm
     steps:
@@ -168,6 +168,31 @@ jobs:
           command: |
             . venv/bin/activate
             pytest
+  coverage:
+    docker:
+      - image: cimg/python:3.11.2
+    environment:
+      SPACY_DICTIONARY: en_core_web_sm
+    steps:
+      - checkout
+      - restore_cache:
+          key: deps-1.0.0-{{ checksum "requirements/common.txt" }}-{{ checksum "requirements/test.txt" }}
+      - run:
+          name: "Setup environment"
+          command: |
+            python3 -m venv venv
+            . venv/bin/activate
+            pip install -r requirements/test.txt
+            python3 -m spacy download $SPACY_DICTIONARY
+      - save_cache:
+          key: deps-1.0.0-{{ checksum "requirements/common.txt" }}-{{ checksum "requirements/test.txt" }}
+          paths:
+            - "venv"
+      - run:
+          name: "Run tests"
+          command: |
+            . venv/bin/activate
+            pytest --cov --cov-fail-under 92
 
   build:
     parameters:
@@ -175,12 +200,12 @@ jobs:
         default: false
         type: boolean
     docker:
-      - image: cimg/python:3.10.4
+      - image: cimg/python:3.11.2
     steps:
       - checkout
       - setup_remote_docker:
           version: 20.10.11
-          docker_layer_caching: false
+          docker_layer_caching: true
       - aws-cli/install
       - run:
           name: "Set docker tag"
@@ -201,7 +226,7 @@ jobs:
             docker push $ECR_REPO/$IMAGE_NAME:$DOCKER_TAG
   deploy_development:
     docker:
-      - image: cimg/python:3.10.4
+      - image: cimg/python:3.11.2
     environment:
       SENTRY_ENVIRONMENT: "development"
     steps:
@@ -218,7 +243,7 @@ jobs:
 
   deploy_staging:
     docker:
-      - image: cimg/python:3.10.4
+      - image: cimg/python:3.11.2
     environment:
       SENTRY_ENVIRONMENT: "staging"
     steps:
@@ -234,7 +259,7 @@ jobs:
       - sentry-release
   deploy_release_to_staging:
     docker:
-      - image: cimg/python:3.10.4
+      - image: cimg/python:3.11.2
     steps:
       - deploy:
           docker_image_tag: $CIRCLE_TAG
@@ -243,7 +268,7 @@ jobs:
           app_domain_prefix: "staging"
   deploy_production:
     docker:
-      - image: cimg/python:3.10.4
+      - image: cimg/python:3.11.2
     environment:
       SENTRY_ENVIRONMENT: "production"
     steps:
@@ -291,6 +316,12 @@ workflows:
                 - main
                 - /^dependabot/(?!docker/).*/
       - test:
+          context: trade-tariff
+          filters:
+            branches:
+              ignore:
+                - main
+      - coverage:
           context: trade-tariff
           filters:
             branches:

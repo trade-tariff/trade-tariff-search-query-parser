@@ -1,17 +1,16 @@
-FROM python:3.10.7-slim-bullseye
+FROM python:3.11-slim-bullseye
 
 WORKDIR /app
 
 COPY requirements.txt requirements.txt
 COPY requirements/ requirements/
 
-RUN pip install --no-cache-dir -r requirements.txt \
-  && apt-get update \
-  && apt-get install --assume-yes --quiet curl \
-  && apt-get clean
+RUN apt-get update \
+    && apt-get install --assume-yes --quiet curl gcc \
+    && apt-get clean \
+    && pip install --no-cache-dir -r requirements.txt
 
 
-# Install the spacy English dictionary
 RUN python -m spacy download en_core_web_md
 
 COPY . .
