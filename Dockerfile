@@ -6,9 +6,10 @@ COPY requirements.txt requirements.txt
 COPY requirements/ requirements/
 
 RUN apt-get update \
-  && apt-get install --assume-yes --quiet curl gcc \
-  && apt-get clean \
-  && pip install --no-cache-dir -r requirements.txt
+    && apt-get install --assume-yes --quiet curl gcc \
+    && apt-get clean \
+    && pip install --no-cache-dir -r requirements.txt
+
 
 RUN python -m spacy download en_core_web_md
 
