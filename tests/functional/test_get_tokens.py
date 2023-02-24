@@ -24,6 +24,23 @@ class ValidTokens(object):
     def __exit__(self, _a, _b, _c):
         pass
 
+def test_get_tokens_by_default_expands_explicit_synonyms_returns_success(client):
+    with ValidTokens(client, "/api/search/tokens?q=red%20kite") as r:
+        assert "red kite" in r.json["original_search_query"]
+        assert "red kite" == r.json["corrected_search_query"]
+        assert "bird" in r.json["expanded_search_query"]
+
+def test_get_tokens_by_default_expands_equivalent_synonyms_returns_success(client):
+    with ValidTokens(client, "/api/search/tokens?q=abdomen") as r:
+        assert "abdomen" == r.json["original_search_query"]
+        assert "abdomen" == r.json["corrected_search_query"]
+        assert "abdomen belly stomach venter" == r.json["expanded_search_query"]
+
+def test_get_tokens_expands_off_does_not_expand_synonyms_returns_success(client):
+    with ValidTokens(client, "/api/search/tokens?q=abdomen&expand_synonyms=0") as r:
+        assert "abdomen" == r.json["original_search_query"]
+        assert "abdomen" == r.json["corrected_search_query"]
+        assert "abdomen" == r.json["expanded_search_query"]
 
 def test_get_tokens_by_default_corrects_spelling_returns_success(client):
     with ValidTokens(client, "/api/search/tokens?q=halbiut") as r:

@@ -18,3 +18,5 @@ def test_get_healthcheck_returns_valid_json(client):
 
     assert response_body["git_sha1"] == "aa603866"
     assert response_body["healthy"]
+    assert isinstance(response_body["using_spelling_fallback"], bool)
+    assert isinstance(response_body["using_synonym_fallback"], bool)
