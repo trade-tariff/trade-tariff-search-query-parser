@@ -29,7 +29,7 @@ class SynonymExpander:
         matching_phrases = []
 
         for i, _word in enumerate(words[:-1]):
-            phrase = " ".join(words[i : i + 2])
+            phrase = " ".join(words[i: i + 2])
             if phrase in self.terms_to_tokens:
                 matching_phrases.append(phrase)
 
@@ -53,4 +53,3 @@ class SynonymExpander:
 
     def __exit__(self, exc_type, exc_value, traceback):
         pass
-

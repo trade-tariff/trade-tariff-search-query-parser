@@ -73,6 +73,7 @@ def test_empty_tokens_phrase(terms_to_tokens):
 
     assert expander.expand(query) == expected
 
+
 def test_empty_tokens_word(terms_to_tokens):
     query = "testingemptytokens"
     expander = SynonymExpander(terms_to_tokens, query)

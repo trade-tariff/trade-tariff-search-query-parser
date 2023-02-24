@@ -1,5 +1,6 @@
 from flaskr.tokenizer import Tokenizer
 
+
 def test_tokenizer_get_tokens(app):
     tokenizer = Tokenizer()
     search_query = "tall man"
