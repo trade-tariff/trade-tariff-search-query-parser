@@ -131,5 +131,6 @@ dmypy.json
 REVISION
 
 config/data/spelling-model.txt
+config/data/synonyms-all.txt
 
 /htmlcov/
