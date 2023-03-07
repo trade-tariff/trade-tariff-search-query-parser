@@ -37,7 +37,7 @@ class SynonymFileHandler:
     def download_file(self):
         if not os.getenv("FLASK_ENV") == "test":
             try:
-                bucket_name = os.getenv("SYNONYM_PACKAGE_BUCKET_NAME") or ""
+                bucket_name = os.getenv("PACKAGE_BUCKET_NAME") or ""
                 s3_client = boto3.client("s3")
                 s3_client.download_file(
                     bucket_name,

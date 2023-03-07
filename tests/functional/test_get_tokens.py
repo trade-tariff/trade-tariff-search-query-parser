@@ -25,6 +25,25 @@ class ValidTokens(object):
         pass
 
 
+def test_stemmable_tokens_are_stemmed_returns_success(client):
+    with ValidTokens(client, "/api/search/tokens?q=whiting") as r:
+        actual = r.json
+        expected = {
+            'corrected_search_query': 'whiting',
+            'expanded_search_query': 'merling whiting',
+            'original_search_query': 'whiting',
+            'tokens': {
+                'adjectives': [],
+                'all': ['merle', 'whiting'],
+                'noun_chunks': ['whiting'],
+                'nouns': ['whiting'],
+                'verbs': ['merle'],
+            },
+        }
+
+        assert actual == expected
+
+
 def test_get_tokens_by_default_expands_explicit_synonyms_returns_success(client):
     with ValidTokens(client, "/api/search/tokens?q=red%20kite") as r:
         assert "red kite" in r.json["original_search_query"]
