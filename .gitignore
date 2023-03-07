@@ -132,5 +132,6 @@ REVISION
 
 config/data/spelling-model.txt
 config/data/synonyms-all.txt
+config/data/stemming-exclusions-all.txt
 
 /htmlcov/
