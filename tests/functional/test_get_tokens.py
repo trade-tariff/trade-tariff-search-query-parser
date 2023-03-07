@@ -41,8 +41,8 @@ def test_stemmable_tokens_are_stemmed_returns_success(client):
             },
         }
 
-
         assert actual == expected
+
 
 def test_get_tokens_by_default_expands_explicit_synonyms_returns_success(client):
     with ValidTokens(client, "/api/search/tokens?q=red%20kite") as r:
