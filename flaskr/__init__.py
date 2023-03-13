@@ -6,6 +6,7 @@ from flaskr.tokenizer import Tokenizer
 from flaskr.spelling_corrector import SpellingCorrector
 from flaskr.synonym_file_handler import SynonymFileHandler
 from flaskr.synonym_expander import SynonymExpander
+from flaskr.stemming_exclusion_file_handler import StemmingExclusionFileHandler
 
 
 def create_app(test_config=None):
@@ -16,7 +17,6 @@ def create_app(test_config=None):
     synonym_handler = SynonymFileHandler()
     synonym_handler.load()
     synonym_expander = SynonymExpander(synonym_handler.terms_to_tokens)
-    tokenizer = Tokenizer()
 
     if test_config is None:
         # load the instance config, if it exists, when not testing
@@ -57,7 +57,8 @@ def create_app(test_config=None):
         result["corrected_search_query"] = corrected_search_query
         result["expanded_search_query"] = expanded_search_query
 
-        tokens = tokenizer.get_tokens(expanded_search_query)
+        tokenizer = Tokenizer(expanded_search_query)
+        tokens = tokenizer.get_tokens()
 
         result["tokens"] = tokens
 
@@ -68,8 +69,10 @@ def create_app(test_config=None):
         spell_corrector.load_spelling()
         synonym_handler.load()
 
-        tokens = tokenizer.get_tokens("tall man")["all"]
-        healthy = len(tokens) == 2
+        tokens = Tokenizer("tall man").get_tokens()
+        healthy = tokens["adjectives"] == ["tall"]
+        healthy = healthy and tokens["nouns"] == ["man"]
+
         using_spelling_fallback = (
             False
             if os.path.exists(path=SpellingCorrector.SPELLING_MODEL_FILEPATH)
@@ -78,6 +81,10 @@ def create_app(test_config=None):
         using_synonym_fallback = (
             False if os.path.exists(path=SynonymFileHandler.SYNONYM_FILEPATH) else True
         )
+        using_stemming_exclusion_fallback = (
+            False if os.path.exists(path=StemmingExclusionFileHandler.STEMMING_EXCLUSION_FILEPATH) else True
+        )
+
         sha = (
             open("REVISION").read().strip() if os.path.exists("REVISION") else "unknown"
         )
@@ -87,6 +94,7 @@ def create_app(test_config=None):
         healthcheck["healthy"] = healthy
         healthcheck["using_spelling_fallback"] = using_spelling_fallback
         healthcheck["using_synonym_fallback"] = using_synonym_fallback
+        healthcheck["using_stemming_exclusion_fallback"] = using_stemming_exclusion_fallback
 
         return healthcheck
 
