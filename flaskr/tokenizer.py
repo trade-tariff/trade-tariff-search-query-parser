@@ -17,12 +17,11 @@ class Tokenizer:
     def get_tokens(self):
         quoted_tokens = []
         unquoted_tokens = []
-        quoted_search_query = ""
         unquoted_search_query = ""
 
         for token, quoted in self._quoted_tokens:
             if quoted:
-                quoted_search_query += token + " "
+                quoted_tokens.append(token)
             else:
                 unquoted_search_query += token + " "
 
@@ -34,10 +33,6 @@ class Tokenizer:
         nouns = [self._handle_excluded_token(token) for token in cleaned_tokens if token.pos_ == "NOUN"]
         verbs = [self._handle_excluded_token(token) for token in cleaned_tokens if token.pos_ == "VERB"]
         adjectives = [self._handle_excluded_token(token) for token in cleaned_tokens if token.pos_ == "ADJ"]
-
-        if quoted_search_query:
-            quoted_search_query = quoted_search_query.strip()
-            quoted_tokens += quoted_search_query.split(" ")
 
         if unquoted_search_query:
             unquoted_search_query = unquoted_search_query.strip()

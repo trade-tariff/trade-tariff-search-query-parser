@@ -102,3 +102,23 @@ def test_get_tokens_single_quotes_prevents_spelling_correction_returns_200(clien
         }
 
         assert actual == expected
+
+
+def test_get_tokens_multi_word_quoted_phrases_returns_200(client):
+    with ValidTokens(client, "/api/search/tokens?q='cherry+tomatoes'&spell=1") as r:
+        actual = r.json
+        expected = {
+            'corrected_search_query': "'cherry tomatoes'",
+            'expanded_search_query': "'cherry tomatoes'",
+            'original_search_query': "'cherry tomatoes'",
+            'tokens': {
+                'adjectives': [],
+                'noun_chunks': [],
+                'nouns': [],
+                'quoted': ["'cherry tomatoes'"],
+                'unquoted': [],
+                'verbs': [],
+            }
+        }
+
+        assert actual == expected
