@@ -71,9 +71,8 @@ class Tokenizer:
 
         return clean_noun_chunks
 
-
     def _handle_excluded_token(self, token):
-        should_lemma = not token.text in stemming_exclusion_handler.excluded_terms
+        should_lemma = token.text not in stemming_exclusion_handler.excluded_terms
 
         if should_lemma:
             return token.lemma_
@@ -87,8 +86,6 @@ class Tokenizer:
         dirty_token = token.is_stop or token.is_punct
 
         return not dirty_token
-
-
 
     def _record_token_information(self, tokens, doc):
         all_tokens = {}

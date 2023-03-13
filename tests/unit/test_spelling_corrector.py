@@ -22,6 +22,7 @@ def test_spelling_corrector_with_single_quotes():
         == "'halbiut' sausage stenolepis cheese binoculars parsnip pharmacy paper"
     )
 
+
 def test_spelling_corrector_with_double_quotes():
     spelling_corrector = SpellingCorrector()
     search_query = '"halbiut" sausadge stenolepsis chese bnoculars parnsip farmacy papre'
@@ -31,6 +32,7 @@ def test_spelling_corrector_with_double_quotes():
         corrected_search_query
         == '"halbiut" sausage stenolepis cheese binoculars parsnip pharmacy paper'
     )
+
 
 def test_spelling_corrector_synonym_not_corrected():
     spelling_corrector = SpellingCorrector()

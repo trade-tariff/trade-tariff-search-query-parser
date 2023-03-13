@@ -25,11 +25,12 @@ def test_tokenizer_get_tokens(app):
             'dog',
         ],
         'verbs': ['jump'],
-        'adjectives' : ['brown'],
+        'adjectives': ['brown'],
         'noun_chunks': ['The brown fox', 'the dog'],
     }
 
     assert tokens == expected
+
 
 def test_stem_excluded_token(app):
     search_query = "clothes and clothing"

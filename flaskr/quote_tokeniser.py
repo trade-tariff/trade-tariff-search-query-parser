@@ -20,6 +20,7 @@ Returns:
     list: A list of tuples containing the token and a boolean value indicating whether the token should be corrected.
 """
 
+
 class QuoteTokeniser:
     PATTERN = re.compile(r'((?:"(?:\\.|[^\\"])*")|(?:\'(?:\\.|[^\\\'])*\')|\S+)')
 
@@ -29,6 +30,7 @@ class QuoteTokeniser:
             return []
 
         terms = []
+
         for match in QuoteTokeniser.PATTERN.finditer(search_term):
             term = match.group(0)
             if term.startswith('"') and term.endswith('"'):

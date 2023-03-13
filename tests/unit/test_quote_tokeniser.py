@@ -15,6 +15,7 @@ def test_tokenise_single_quotes():
 
     assert actual == expected
 
+
 def test_tokenise_double_quotes():
     query = 'this is a "test query"'
     tokeniser = QuoteTokeniser()
@@ -27,6 +28,7 @@ def test_tokenise_double_quotes():
     actual = tokeniser.tokenise(query)
 
     assert actual == expected
+
 
 def test_tokenise_mixed_quotes():
     query = 'this is a "test query" and this is a \'test query\''
@@ -46,6 +48,7 @@ def test_tokenise_mixed_quotes():
 
     assert actual == expected
 
+
 def test_tokenise_empty_string():
     query = ''
     tokeniser = QuoteTokeniser()
@@ -54,6 +57,7 @@ def test_tokenise_empty_string():
 
     assert actual == expected
 
+
 def test_tokenise_none():
     query = None
     tokeniser = QuoteTokeniser()
@@ -61,6 +65,7 @@ def test_tokenise_none():
     actual = tokeniser.tokenise(query)
 
     assert actual == expected
+
 
 def test_tokenise_incomplete_double_quotes():
     query = 'this is a "test query'
@@ -75,6 +80,7 @@ def test_tokenise_incomplete_double_quotes():
     actual = tokeniser.tokenise(query)
 
     assert actual == expected
+
 
 def test_tokenise_incomplete_single_quotes():
     query = 'this is a \'test query'
