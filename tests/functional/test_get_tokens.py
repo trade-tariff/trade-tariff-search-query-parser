@@ -1,6 +1,3 @@
-# Test GET /tokens?q=query+terms
-
-
 class ValidTokens(object):
     def __init__(self, client, path):
         self._client = client
@@ -13,7 +10,7 @@ class ValidTokens(object):
         assert response.status_code == 200
         assert response.headers["Content-Type"] == "application/json"
 
-        for token_type in ["all", "adjectives", "nouns", "verbs", "noun_chunks"]:
+        for token_type in ["adjectives", "nouns", "verbs", "noun_chunks"]:
             assert token_type in response_body["tokens"]
 
         for search_query in ["original_search_query", "corrected_search_query"]:
@@ -34,10 +31,11 @@ def test_stemmable_tokens_are_stemmed_returns_success(client):
             'original_search_query': 'whiting',
             'tokens': {
                 'adjectives': [],
-                'all': ['merle', 'whiting'],
-                'noun_chunks': ['whiting'],
-                'nouns': ['whiting'],
-                'verbs': ['merle'],
+                'noun_chunks': [],
+                'nouns': [],
+                'quoted': [],
+                'unquoted': ['merling', 'whiting'],
+                'verbs': ['merling', 'whiting'],
             },
         }
 
@@ -83,3 +81,23 @@ def test_get_tokens_spelling_off_corrects_spelling_returns_valid_json(client):
 def test_get_tokens_empty_query_returns_200(client):
     with ValidTokens(client, "/api/search/tokens?q="):
         pass
+
+
+def test_get_tokens_single_quotes_prevents_spelling_correction_returns_200(client):
+    with ValidTokens(client, "/api/search/tokens?q='paracetamol'+is+a+great+thing+to+%22tested%22&spell=1") as r:
+        actual = r.json
+        expected = {
+            'corrected_search_query': '\'paracetamol\' iso a great thing two "tested"',
+            'expanded_search_query': '\'paracetamol\' iso a great thing two "tested"',
+            'original_search_query': '\'paracetamol\' is a great thing to "tested"',
+            'tokens': {
+                'adjectives': ['great'],
+                'noun_chunks': ['a great thing'],
+                'nouns': ['thing'],
+                'quoted': ["'paracetamol'", '"tested"'],
+                'unquoted': ['iso', 'a', 'great', 'thing', 'two'],
+                'verbs': ['iso'],
+            },
+        }
+
+        assert actual == expected

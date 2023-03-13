@@ -1,6 +1,3 @@
-# Test GET /healthcheck
-
-
 def test_get_healthcheck_returns_success(client):
     response = client.get("/api/search/healthcheck")
 
@@ -20,3 +17,4 @@ def test_get_healthcheck_returns_valid_json(client):
     assert response_body["healthy"]
     assert isinstance(response_body["using_spelling_fallback"], bool)
     assert isinstance(response_body["using_synonym_fallback"], bool)
+    assert isinstance(response_body["using_stemming_exclusion_fallback"], bool)
