@@ -1,13 +1,13 @@
 import re
 
 """
-Converts an input query with surrounding single and double quotes and converts it
-to an array of token tuples that include the a token phrase and an instruction of whether
-to correct the tokens spelling.
+Converts an input query with surrounding single and double quotes and produces
+an array of token tuples that include token phrase and an instruction of whether
+the tokens are within single or double quotes
 
 Example:
     query = "this is a 'test query'"
-    tokeniser = SpellingTokeniser()
+    tokeniser = QuoteTokeniser()
     tokens = tokeniser.tokenise(query)
     print(tokens)
     # [('this', True), ('is', True), ('a', True), ('test query', False)]

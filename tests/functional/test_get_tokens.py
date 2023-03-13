@@ -25,17 +25,18 @@ class ValidTokens(object):
 def test_stemmable_tokens_are_stemmed_returns_success(client):
     with ValidTokens(client, "/api/search/tokens?q=whiting") as r:
         actual = r.json
+
         expected = {
             'corrected_search_query': 'whiting',
             'expanded_search_query': 'merling whiting',
             'original_search_query': 'whiting',
             'tokens': {
                 'adjectives': [],
-                'noun_chunks': [],
-                'nouns': [],
+                'noun_chunks': ['whiting'],
+                'nouns': ['whiting'],
                 'quoted': [],
                 'unquoted': ['merling', 'whiting'],
-                'verbs': ['merling', 'whiting'],
+                'verbs': ['merle'],
             },
         }
 
