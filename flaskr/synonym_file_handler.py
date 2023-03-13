@@ -50,6 +50,8 @@ class SynonymFileHandler:
     def parse_file(self):
         if self.filename:
             filename = self.filename
+        elif os.getenv("FLASK_ENV") == "test":
+            filename = SynonymFileHandler.SYNONYM_FALLBACK_FILEPATH
         elif os.path.exists(SynonymFileHandler.SYNONYM_FILEPATH):
             filename = SynonymFileHandler.SYNONYM_FILEPATH
         else:

@@ -1,8 +1,8 @@
 import os
-import re
 import boto3
 from botocore.exceptions import NoCredentialsError
 from textblob.en import Spelling
+from flaskr.quote_tokeniser import QuoteTokeniser
 
 
 class SpellingCorrector:
@@ -16,13 +16,16 @@ class SpellingCorrector:
     def correct(self, term):
         self.load_spelling()
 
-        words = re.findall(r"\w+", term)
+        word_tuples = QuoteTokeniser.tokenise(term)
 
         corrected_terms = []
 
-        for word in words:
-            corrected_term = self._spelling.suggest(word)[0][0]
-            corrected_terms.append(corrected_term)
+        for word, quoted in word_tuples:
+            if quoted:
+                corrected_terms.append(word)
+            else:
+                corrected_term = self._spelling.suggest(word)[0][0]
+                corrected_terms.append(corrected_term)
 
         return " ".join(corrected_terms)
 
@@ -32,7 +35,9 @@ class SpellingCorrector:
 
             self.download_file()
 
-            if os.path.exists(SpellingCorrector.SPELLING_MODEL_FILEPATH):
+            if os.getenv("FLASK_ENV") == "test":
+                pass
+            elif os.path.exists(SpellingCorrector.SPELLING_MODEL_FILEPATH):
                 try:
                     spelling = Spelling(SpellingCorrector.SPELLING_MODEL_FILEPATH)
                 except Exception:
