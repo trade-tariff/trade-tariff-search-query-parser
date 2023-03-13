@@ -2,9 +2,38 @@ from flaskr.tokenizer import Tokenizer
 
 
 def test_tokenizer_get_tokens(app):
-    tokenizer = Tokenizer()
-    search_query = "tall man"
-    tokens = tokenizer.get_tokens(search_query)
+    search_query = "The 'quick' brown fox jumped over the \"lazy\" dog."
+    tokenizer = Tokenizer(search_query)
+    tokens = tokenizer.get_tokens()
 
-    for token_type in ["all", "adjectives", "nouns", "verbs"]:
-        assert token_type in tokens
+    expected = {
+        'quoted': [
+            "'quick'",
+            '"lazy"'
+        ],
+        'unquoted': [
+            'The',
+            'brown',
+            'fox',
+            'jumped',
+            'over',
+            'the',
+            'dog.',
+        ],
+        'nouns': [
+            'fox',
+            'dog',
+        ],
+        'verbs': ['jump'],
+        'adjectives' : ['brown'],
+        'noun_chunks': ['The brown fox', 'the dog'],
+    }
+
+    assert tokens == expected
+
+def test_stem_excluded_token(app):
+    search_query = "clothes and clothing"
+    tokenizer = Tokenizer(search_query)
+    tokens = tokenizer.get_tokens()
+
+    assert "clothes" in tokens["nouns"]
