@@ -1,3 +1,6 @@
+import time
+
+
 class ValidTokens(object):
     def __init__(self, client, path):
         self._client = client
@@ -20,6 +23,33 @@ class ValidTokens(object):
 
     def __exit__(self, _a, _b, _c):
         pass
+
+
+def test_nonsense_input_returns_success(client):
+    q = "qwdwefwfwWWWWWWWWRGRGEWGEWGEWGEWG"
+
+    start = time.time()
+
+    with ValidTokens(client, "/api/search/tokens?q={}".format(q)) as r:
+        actual = r.json
+        expected = {
+            'corrected_search_query': 'qwdwefwfwWWWWWWWWRGRGEWGEWGEWGEWG',
+            'expanded_search_query': 'qwdwefwfwWWWWWWWWRGRGEWGEWGEWGEWG',
+            'original_search_query': 'qwdwefwfwWWWWWWWWRGRGEWGEWGEWGEWG',
+            'tokens': {
+                'adjectives': [],
+                'noun_chunks': [],
+                'nouns': [],
+                'quoted': [],
+                'unquoted': [],
+                'verbs': [],
+            },
+        }
+        assert actual == expected
+
+    end = time.time()
+
+    assert end - start < 1
 
 
 def test_stemmable_tokens_are_stemmed_returns_success(client):
