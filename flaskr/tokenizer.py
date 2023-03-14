@@ -13,11 +13,16 @@ class Tokenizer:
         self._search_query = search_query
         self._quoted_tokens = QuoteTokeniser.tokenise(search_query)
         self._debug_tokens = os.getenv("DEBUG_TOKENS") == "true"
+        self._maximum_word_length = int(os.getenv("MAXIMUM_WORD_LENGTH", "15"))
 
     def get_tokens(self):
         quoted_tokens = []
         unquoted_tokens = []
         unquoted_search_query = ""
+
+        for token, quoted in self._quoted_tokens:
+            if not quoted and len(token) > self._maximum_word_length:
+                return self._untokenised_result()
 
         for token, quoted in self._quoted_tokens:
             if quoted:
@@ -51,6 +56,16 @@ class Tokenizer:
             self._record_token_information(tokens, doc)
 
         return tokens
+
+    def _untokenised_result(self):
+        return {
+            "quoted": [],
+            "unquoted": [],
+            "nouns": [],
+            "verbs": [],
+            "adjectives": [],
+            "noun_chunks": [],
+        }
 
     def _clean_chunks(self, doc):
         noun_chunks = list(doc.noun_chunks)

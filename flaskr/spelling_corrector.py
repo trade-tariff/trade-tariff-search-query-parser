@@ -12,6 +12,7 @@ class SpellingCorrector:
 
     def __init__(self):
         self._spelling = None
+        self._maximum_word_length = int(os.getenv("MAXIMUM_WORD_LENGTH", "15"))
 
     def correct(self, term):
         self.load_spelling()
@@ -21,6 +22,9 @@ class SpellingCorrector:
         corrected_terms = []
 
         for word, quoted in word_tuples:
+            if not quoted and len(word) > self._maximum_word_length:
+                return term
+
             if quoted:
                 corrected_terms.append(word)
             else:
