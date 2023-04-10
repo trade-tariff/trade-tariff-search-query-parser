@@ -1,7 +1,7 @@
 blis==0.7.9
 blinker==1.6
 boto3==1.26.89
-botocore==1.29.104
+botocore==1.29.109
 catalogue==2.0.8
 certifi==2022.12.7
 charset-normalizer==3.1.0
