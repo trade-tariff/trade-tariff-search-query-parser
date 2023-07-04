@@ -18,7 +18,7 @@ murmurhash==1.0.9
 nltk==3.8.1
 numpy==1.25.0
 packaging==23.0
-pathy==0.10.1
+pathy==0.10.2
 preshed==3.0.8
 pydantic==1.10.7
 pyparsing==3.0.9
