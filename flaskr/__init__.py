@@ -31,6 +31,12 @@ def create_app(test_config=None):
     except OSError:
         pass
 
+    # isolated healthcheck route
+    @app.get("/healthcheckz")
+    def healthz():
+        json = {"message": "OK"}
+        return json, 200
+
     api_prefix = "/api/search"
 
     @app.route(f"{api_prefix}/tokens", methods=["GET"])
