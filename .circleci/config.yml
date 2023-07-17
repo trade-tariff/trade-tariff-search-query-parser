@@ -19,6 +19,11 @@ executors:
       TF_INPUT: 0
       TF_IN_AUTOMATION: 1
 
+  python:
+    docker:
+      - image: cimg/python:3.11.2
+    resource_class: small
+
 commands:
   deploy:
     parameters:
@@ -66,10 +71,19 @@ commands:
               --protocol tcp \
               --port 8080
 
-      - tariff/test-dark-app:
-          cf_app: tariff-search-query-parser
-          environment_key: << parameters.environment_key >>
-          healthcheck_path: "/healthcheckz"
+      - run:
+          name: "Verify new version is working on dark URL."
+          command: |
+            sleep 4
+            APP_NAME="$CF_APP-<< parameters.environment_key >>-dark"
+            HTTPCODE=$(cf ssh $APP_NAME -c 'curl -s -o /dev/null -w "%{http_code}" http://localhost:8080/api/search/healthcheck')
+
+            if [ "$HTTPCODE" -ne 200 ];then
+              echo "dark route not available, failing deploy ($HTTPCODE)"
+              cf logs "$CF_APP-<< parameters.environment_key >>-dark" --recent
+              cf delete -f "$CF_APP-<< parameters.environment_key >>-dark"
+              exit 1
+            fi
 
       - run:
           name: "Switch dark app to live"
@@ -147,19 +161,18 @@ commands:
             yarn run << parameters.space >>-tariff-search-query-parser-smoketests
 jobs:
   lint:
-      docker:
-        - image: cimg/python:3.11.2
-      steps:
-          - checkout
-          - run:
-              name: install flake8
-              command: pip install flake8==5.0.4
-          - run:
-              name: run flake8
-              command: flake8 .
+    executor: python
+    steps:
+      - checkout
+      - run:
+          name: install flake8
+          command: pip install flake8==5.0.4
+      - run:
+          name: run flake8
+          command: flake8 .
+
   test:
-    docker:
-      - image: cimg/python:3.11.2
+    executor: python
     environment:
       SPACY_DICTIONARY: en_core_web_sm
     steps:
@@ -182,9 +195,9 @@ jobs:
           command: |
             . venv/bin/activate
             pytest
+
   coverage:
-    docker:
-      - image: cimg/python:3.11.2
+    executor: python
     environment:
       SPACY_DICTIONARY: en_core_web_sm
     steps:
@@ -213,8 +226,7 @@ jobs:
       dev-build:
         default: false
         type: boolean
-    docker:
-      - image: cimg/python:3.11.2
+    executor: python
     steps:
       - checkout
       - setup_remote_docker:
@@ -240,8 +252,7 @@ jobs:
             docker push $ECR_REPO/$IMAGE_NAME:$DOCKER_TAG
 
   deploy_development:
-    docker:
-      - image: cimg/python:3.11.2
+    executor: python
     environment:
       SENTRY_ENVIRONMENT: "development"
     steps:
@@ -258,8 +269,7 @@ jobs:
           environment: "development"
 
   deploy_staging:
-    docker:
-      - image: cimg/python:3.11.2
+    executor: python
     environment:
       SENTRY_ENVIRONMENT: "staging"
     steps:
@@ -276,17 +286,16 @@ jobs:
           environment: "staging"
 
   deploy_release_to_staging:
-    docker:
-      - image: cimg/python:3.11.2
+    executor: python
     steps:
       - deploy:
           docker_tag: $CIRCLE_TAG
           space: "staging"
           environment_key: "staging"
           app_domain_prefix: "staging"
+
   deploy_production:
-    docker:
-      - image: cimg/python:3.11.2
+    executor: python
     environment:
       SENTRY_ENVIRONMENT: "production"
     steps:
