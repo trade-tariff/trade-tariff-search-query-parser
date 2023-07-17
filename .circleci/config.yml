@@ -7,7 +7,7 @@ orbs:
   gh: circleci/github-cli@1.0
   queue: eddiewebb/queue@1.6.4
   slack: circleci/slack@4.3.0
-  tariff: trade-tariff/trade-tariff-ci-orb@dev:8df1e65
+  tariff: trade-tariff/trade-tariff-ci-orb@0
 
 executors:
   terraform:
