@@ -32,7 +32,7 @@ module "service" {
   service_environment_config = [
     {
       name  = "EXPAND_EQUIVALENT_SYNONYMS"
-      value = "true"
+      value = "false"
     },
     {
       name  = "EXPAND_EXPLICIT_SYNONYMS"
@@ -44,7 +44,7 @@ module "service" {
     },
     {
       name = "FLASK_ENV"
-      name = var.environment
+      name = "production"
     },
     {
       name  = "MAXIMUM_WORD_LENGTH"
