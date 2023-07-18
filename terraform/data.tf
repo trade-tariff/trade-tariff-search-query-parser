@@ -34,3 +34,7 @@ data "aws_s3_bucket" "spelling_corrector" {
 data "aws_s3_bucket" "synonym_packages" {
   bucket = "trade-tariff-opensearch-packages-${local.account_id}"
 }
+
+data "aws_kms_key" "opensearch_key" {
+  key_id = "alias/opensearch-key"
+}

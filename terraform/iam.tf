@@ -13,6 +13,12 @@ data "aws_iam_policy_document" "buckets" {
       "${data.aws_s3_bucket.spelling_corrector.arn}/spelling-corrector/spelling-model.txt",
     ]
   }
+
+  statement {
+    effect    = "Allow"
+    actions   = ["kms:Decrypt"]
+    resources = [data.aws_kms_key.opensearch_key.arn]
+  }
 }
 
 resource "aws_iam_policy" "buckets" {
