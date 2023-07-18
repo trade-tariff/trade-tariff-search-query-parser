@@ -28,9 +28,13 @@ data "aws_ssm_parameter" "ecr_url" {
 }
 
 data "aws_s3_bucket" "spelling_corrector" {
-  bucket = "trade-tariff-search-configration-${local.account_id}"
+  bucket = "trade-tariff-search-configuration-${local.account_id}"
 }
 
 data "aws_s3_bucket" "synonym_packages" {
   bucket = "trade-tariff-opensearch-packages-${local.account_id}"
+}
+
+data "aws_kms_key" "opensearch_key" {
+  key_id = "alias/opensearch-key"
 }
