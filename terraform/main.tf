@@ -25,7 +25,7 @@ module "service" {
   cpu    = var.cpu
   memory = var.memory
 
-  execution_role_policy_arns = [
+  task_role_policy_arns = [
     aws_iam_policy.buckets.arn
   ]
 
