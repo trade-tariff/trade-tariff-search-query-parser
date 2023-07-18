@@ -1,7 +1,10 @@
 data "aws_iam_policy_document" "buckets" {
   statement {
-    effect  = "Allow"
-    actions = ["s3:GetObject"]
+    effect = "Allow"
+    actions = [
+      "s3:GetObject",
+      "s3:ListObject"
+    ]
     resources = [
       data.aws_s3_bucket.synonym_packages.arn,
       "${data.aws_s3_bucket.synonym_packages.arn}/config/opensearch/stemming_exclusions_all.txt",
