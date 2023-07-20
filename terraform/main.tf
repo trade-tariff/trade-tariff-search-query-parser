@@ -1,5 +1,5 @@
 module "service" {
-  source = "git@github.com:trade-tariff/trade-tariff-platform-terraform-modules.git//aws/ecs-service?ref=aws/ecs-service-v1.6.1"
+  source = "git@github.com:trade-tariff/trade-tariff-platform-terraform-modules.git//aws/ecs-service?ref=aws/ecs-service-v1.7.0"
 
   environment = var.environment
   region      = var.region
@@ -28,6 +28,8 @@ module "service" {
   task_role_policy_arns = [
     aws_iam_policy.buckets.arn
   ]
+
+  private_dns_namespace = "tariff.internal"
 
   service_environment_config = [
     {
