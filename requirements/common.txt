@@ -22,7 +22,7 @@ pathy==0.10.2
 preshed==3.0.8
 pydantic==1.10.7
 pyparsing==3.0.9
-regex==2023.6.3
+regex==2023.8.8
 requests==2.31.0
 s3transfer==0.6.0
 sentry-sdk==1.26.0
