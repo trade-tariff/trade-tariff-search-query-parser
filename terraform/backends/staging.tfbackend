@@ -1,0 +1,5 @@
+bucket         = "terraform-state-staging-451934005581"
+key            = "tariff-search-query-parser.tfstate"
+region         = "eu-west-2"
+encrypt        = true
+dynamodb_table = "search-query-parser-lock-451934005581"
