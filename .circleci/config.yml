@@ -421,7 +421,6 @@ workflows:
           environment: development
           image_name: tariff-search-query-parser
           ssm_parameter: "/development/SEARCH_QUERY_PARSER_ECR_URL"
-          image: tariff/python
           <<: *filter-not-main
 
       - deploy-development:
@@ -481,6 +480,7 @@ workflows:
           context: trade-tariff-terraform-aws-staging
           environment: staging
           requires:
+            - write-docker-tag-staging
             - plan-terraform-staging
             - build-and-push-live
           <<: *filter-main
@@ -507,6 +507,7 @@ workflows:
           environment: production
 
       - plan-terraform:
+          name: plan-terraform-prod
           context: trade-tariff-terraform-aws-production
           environment: production
           requires:
