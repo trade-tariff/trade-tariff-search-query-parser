@@ -1,5 +1,27 @@
 version: 2.1
 
+filter-not-main: &filter-not-main
+  filters:
+    branches:
+      ignore:
+        - main
+        - /^dependabot/(?!docker/).*/
+        - /^hotfix\/.+/
+
+filter-main: &filter-main
+  filters:
+    branches:
+      only:
+        - main
+        - /^hotfix\/.+/
+
+filter-release: &filter-release
+  filters:
+    tags:
+      only: /^release-202[\d-]+/
+    branches:
+      ignore: /.*/
+
 orbs:
   aws-cli: circleci/aws-cli@2.0.3
   terraform: circleci/terraform@3.2.1
@@ -12,7 +34,7 @@ orbs:
 executors:
   terraform:
     docker:
-      - image: hashicorp/terraform:1.4.6
+      - image: hashicorp/terraform:1.5.5
     resource_class: small
     working_directory: "/tmp/terraform"
     environment:
@@ -134,31 +156,6 @@ commands:
           event: pass
           template: basic_success_1
 
-  smoketest:
-    parameters:
-      space:
-        type: string
-    steps:
-      - run:
-          name: "Checkout tests repo"
-          command: git clone --depth=1 "https://github.com/trade-tariff/trade-tariff-testing/"
-      - restore_cache:
-          keys:
-            - v1-smoketest-deps-{{ checksum "trade-tariff-testing/yarn.lock" }}
-      - run:
-          name: "Install NPM packages"
-          command: "cd trade-tariff-testing && yarn install"
-      - save_cache:
-          key: v1-smoketest-deps-{{ checksum "trade-tariff-testing/yarn.lock" }}
-          paths:
-            - trade-tariff-testing/node_modules
-            - /root/.cache/Cypress
-      - run:
-          name: "Cypress Smoke tests"
-          command: |
-            cd trade-tariff-testing
-
-            yarn run << parameters.space >>-tariff-search-query-parser-smoketests
 jobs:
   lint:
     executor: python
@@ -251,7 +248,7 @@ jobs:
             docker tag $IMAGE_NAME:$DOCKER_TAG $ECR_REPO/$IMAGE_NAME:$DOCKER_TAG
             docker push $ECR_REPO/$IMAGE_NAME:$DOCKER_TAG
 
-  deploy_development:
+  deploy-development:
     executor: python
     environment:
       SENTRY_ENVIRONMENT: "development"
@@ -268,7 +265,7 @@ jobs:
       - tariff/sentry-release:
           environment: "development"
 
-  deploy_staging:
+  deploy-staging:
     executor: python
     environment:
       SENTRY_ENVIRONMENT: "staging"
@@ -285,7 +282,7 @@ jobs:
       - tariff/sentry-release:
           environment: "staging"
 
-  deploy_release_to_staging:
+  deploy-release-to-staging:
     executor: python
     steps:
       - deploy:
@@ -294,7 +291,7 @@ jobs:
           environment_key: "staging"
           app_domain_prefix: "staging"
 
-  deploy_production:
+  deploy-production:
     executor: python
     environment:
       SENTRY_ENVIRONMENT: "production"
@@ -311,21 +308,7 @@ jobs:
           slack-channel: trade_tariff
           release-tag: $CIRCLE_TAG
 
-  smoketest_dev:
-    docker:
-      - image: "cypress/base:16.5.0"
-    steps:
-      - smoketest:
-          space: dev
-
-  smoketest_staging:
-    docker:
-      - image: "cypress/base:16.5.0"
-    steps:
-      - smoketest:
-          space: staging
-
-  write_docker_tag:
+  write-docker-tag:
     parameters:
       environment:
         type: string
@@ -339,7 +322,7 @@ jobs:
           paths:
             - terraform/
 
-  fmt_validate_terraform:
+  fmt-validate-terraform:
     executor: terraform
     parameters:
       environment:
@@ -356,7 +339,7 @@ jobs:
       - terraform/validate:
           path: terraform/
 
-  plan_terraform:
+  plan-terraform:
     executor: terraform
     parameters:
       environment:
@@ -373,7 +356,7 @@ jobs:
           backend_config_file: backends/<< parameters.environment >>.tfbackend
           var_file: config_<< parameters.environment >>.tfvars
 
-  apply_terraform:
+  apply-terraform:
     executor: terraform
     parameters:
       environment:
@@ -391,193 +374,168 @@ jobs:
           var_file: config_<< parameters.environment >>.tfvars
 
 workflows:
-  ci:
+  version: 2
+
+  deploy-to-development:
     jobs:
-      - lint:
-          filters:
-            branches:
-              ignore:
-                - main
-                - /^dependabot/(?!docker/).*/
-
-      - write_docker_tag:
+      - write-docker-tag:
+          name: write-docker-tag-dev
           environment: development
+          <<: *filter-not-main
 
-      - fmt_validate_terraform:
+      - lint:
+          <<: *filter-not-main
+
+      - test:
+          context: trade-tariff
+          <<: *filter-not-main
+
+      - coverage:
+          context: trade-tariff
+          <<: *filter-not-main
+
+      - fmt-validate-terraform:
+          name: fmt-terraform-dev
           context: trade-tariff-terraform-aws-development
           environment: development
-          filters:
-            branches:
-              ignore:
-                - main
-                - /^dependabot/(?!docker/).*/
-                - /^hotfix\/.+/
+          <<: *filter-not-main
 
-      - plan_terraform:
+      - plan-terraform:
+          name: plan-terraform-dev
           context: trade-tariff-terraform-aws-development
           environment: development
           requires:
-            - write_docker_tag
-            - fmt_validate_terraform
-          filters:
-            branches:
-              ignore:
-                - main
-                - /^dependabot/(?!docker/).*/
-                - /^hotfix\/.+/
+            - write-docker-tag-dev
+            - fmt-terraform-dev
+          <<: *filter-not-main
 
       - build:
-          name: build_paas_development
+          name: build-dev
           context: trade-tariff
           dev-build: true
-          filters:
-            branches:
-              ignore:
-                - main
-                - /^dependabot/(?!docker/).*/
+          <<: *filter-not-main
 
       - tariff/build-and-push:
-          name: build_and_push_dev
+          name: build-and-push-dev
           context: trade-tariff-terraform-aws-development
           environment: development
           image_name: tariff-search-query-parser
           ssm_parameter: "/development/SEARCH_QUERY_PARSER_ECR_URL"
-          image: tariff/python
-          filters:
-            branches:
-              ignore:
-                - main
-                - /^dependabot/(?!docker/).*/
-                - /^hotfix\/.+/
+          <<: *filter-not-main
 
-      - apply_terraform:
+      - deploy-development:
+          context: trade-tariff
+          requires:
+            - build-dev
+            - test
+          <<: *filter-not-main
+
+      - apply-terraform:
+          name: apply-terraform-dev
           context: trade-tariff-terraform-aws-development
           environment: development
           requires:
-            - plan_terraform
-            - build_and_push_dev
-          filters:
-            branches:
-              ignore:
-                - /^dependabot/(?!docker/).*/
-                - /^hotfix\/.+/
+            - plan-terraform-dev
+            - build-and-push-dev
+          <<: *filter-not-main
 
-      - test:
+      - tariff/smoketests:
+          name: smoketest-dev
           context: trade-tariff
-          filters:
-            branches:
-              ignore:
-                - main
-
-      - coverage:
-          context: trade-tariff
-          filters:
-            branches:
-              ignore:
-                - main
-
-      - deploy_development:
-          context: trade-tariff
-          filters:
-            branches:
-              ignore:
-                - main
-                - /^dependabot/(?!docker/).*/
+          url: https://dev.trade-tariff.service.gov.uk
+          yarn_run: dev-tariff-duty-calculator-smoketests
           requires:
-            - build_paas_development
-            - test
+            - deploy-development
+          <<: *filter-not-main
 
-      - smoketest_dev:
-          name: smoketest_dev
-          context: trade-tariff
-          filters:
-            branches:
-              ignore:
-                - main
-                - /^hotfix\/.+/
-                - /^dependabot/(?!docker/).*/
+  deploy-to-staging:
+    jobs:
+      - write-docker-tag:
+          name: write-docker-tag-staging
+          environment: staging
+
+      - plan-terraform:
+          name: plan-terraform-staging
+          context: trade-tariff-terraform-aws-staging
+          environment: staging
           requires:
-            - deploy_development
+            - write-docker-tag-staging
+          <<: *filter-not-main
 
       - build:
-          name: build_paas_live
+          name: build-live
           context: trade-tariff
-          filters:
-            branches:
-              only:
-                - main
+          <<: *filter-main
 
-      - deploy_staging:
-          context: trade-tariff
-          filters:
-            branches:
-              only:
-                - main
+      - tariff/build-and-push:
+          name: build-and-push-live
+          context: trade-tariff-terraform-aws-staging
+          environment: staging
+          image_name: tariff-search-query-parser
+          ssm_parameter: "/staging/SEARCH_QUERY_PARSER_ECR_URL"
+          <<: *filter-main
+
+      - apply-terraform:
+          name: apply-terraform-staging
+          context: trade-tariff-terraform-aws-staging
+          environment: staging
           requires:
-            - build_paas_live
+            - write-docker-tag-staging
+            - plan-terraform-staging
+            - build-and-push-live
+          <<: *filter-main
 
-      - smoketest_staging:
+      - deploy-staging:
           context: trade-tariff
-          filters:
-            branches:
-              only:
-                - main
-                - /^hotfix\/.+/
           requires:
-            - deploy_staging
+            - build-live
+          <<: *filter-main
 
-      - hold_create_release:
+      - tariff/smoketests:
+          name: smoketest-staging
+          context: trade-tariff
+          url: https://staging.trade-tariff.service.gov.uk
+          yarn_run: staging-tariff-duty-calculator-smoketests
+          requires:
+            - deploy-staging
+          <<: *filter-main
+
+  deploy-to-production:
+    jobs:
+      - write-docker-tag:
+          name: write-docker-tag-prod
+          environment: production
+
+      - plan-terraform:
+          name: plan-terraform-prod
+          context: trade-tariff-terraform-aws-production
+          environment: production
+          requires:
+            - write-docker-tag-prod
+          <<: *filter-not-main
+
+      - promote-to-production?:
           type: approval
-          filters:
-            branches:
-              only:
-                - main
-          requires:
-            - deploy_staging
+          <<: *filter-main
 
       - tariff/create-production-release:
           context: trade-tariff
           image-name: tariff-search-query-parser
-          filters:
-            branches:
-              only:
-                - main
           requires:
-            - hold_create_release
+            - promote-to-production?
+          <<: *filter-main
 
-      - deploy_release_to_staging:
+      - deploy-production:
           context: trade-tariff
-          filters:
-            tags:
-              only: /^release-202[\d-]+/
-            branches:
-              ignore: /.*/
-
-      - smoketest_staging:
-          name: smoketest_release_to_staging
-          context: trade-tariff
-          filters:
-            tags:
-              only: /^release-202[\d-]+/
-            branches:
-              ignore: /.*/
           requires:
-            - deploy_release_to_staging
+            - promote-to-production?
+          <<: *filter-release
 
-      - hold_deploy_production:
-          type: approval
-          filters:
-            tags:
-              only: /^release-202[\d-]+/
-            branches:
-              ignore: /.*/
-
-      - deploy_production:
-          context: trade-tariff
-          filters:
-            tags:
-              only: /^release-202[\d-]+/
-            branches:
-              ignore: /.*/
+      - apply-terraform:
+          name: apply-terraform-prod
+          context: trade-tariff-terraform-aws-production
+          environment: production
           requires:
-            - hold_deploy_production
+            - write-docker-tag-prod
+            - promote-to-production?
+          <<: *filter-main
