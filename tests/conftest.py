@@ -21,8 +21,6 @@ def app():
 
     os.remove("REVISION")
 
-    # clean up / reset resources here
-
 
 @pytest.fixture
 def client(app):

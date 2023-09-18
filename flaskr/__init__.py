@@ -1,7 +1,10 @@
 import os
-from flaskr import error_logging
+
+
 from flask import Flask, request
 
+from flaskr.logging_configurator import LoggingConfigurator
+from flaskr import error_logging
 from flaskr.tokenizer import Tokenizer
 from flaskr.spelling_corrector import SpellingCorrector
 from flaskr.synonym_file_handler import SynonymFileHandler
@@ -12,7 +15,9 @@ from flaskr.stemming_exclusion_file_handler import StemmingExclusionFileHandler
 def create_app(test_config=None):
     error_logging.setup_sentry()
 
-    app = Flask(__name__, instance_relative_config=True)
+    app = Flask(__name__)
+    LoggingConfigurator(app).configure()
+
     spell_corrector = SpellingCorrector()
     synonym_handler = SynonymFileHandler()
     synonym_handler.load()
@@ -88,7 +93,11 @@ def create_app(test_config=None):
             False if os.path.exists(path=SynonymFileHandler.SYNONYM_FILEPATH) else True
         )
         using_stemming_exclusion_fallback = (
-            False if os.path.exists(path=StemmingExclusionFileHandler.STEMMING_EXCLUSION_FILEPATH) else True
+            False
+            if os.path.exists(
+                path=StemmingExclusionFileHandler.STEMMING_EXCLUSION_FILEPATH
+            )
+            else True
         )
 
         sha = (
@@ -100,7 +109,9 @@ def create_app(test_config=None):
         healthcheck["healthy"] = healthy
         healthcheck["using_spelling_fallback"] = using_spelling_fallback
         healthcheck["using_synonym_fallback"] = using_synonym_fallback
-        healthcheck["using_stemming_exclusion_fallback"] = using_stemming_exclusion_fallback
+        healthcheck[
+            "using_stemming_exclusion_fallback"
+        ] = using_stemming_exclusion_fallback
 
         return healthcheck
 
