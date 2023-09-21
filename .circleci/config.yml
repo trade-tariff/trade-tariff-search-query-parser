@@ -446,7 +446,7 @@ workflows:
           name: smoketest-dev
           context: trade-tariff
           url: https://dev.trade-tariff.service.gov.uk
-          yarn_run: dev-tariff-duty-calculator-smoketests
+          yarn_run: dev-tariff-search-query-parser-smoketests
           requires:
             - deploy-development
           <<: *filter-not-main
