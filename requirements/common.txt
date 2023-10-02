@@ -34,7 +34,7 @@ spacy-loggers==1.0.4
 spacy==3.5.3
 srsly==2.4.6
 textblob==0.17.1
-thinc==8.1.10
+thinc==8.2.1
 tqdm==4.65.0
 typer==0.7.0
 typing_extensions==4.5.0
