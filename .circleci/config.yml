@@ -248,49 +248,6 @@ jobs:
             docker tag $IMAGE_NAME:$DOCKER_TAG $ECR_REPO/$IMAGE_NAME:$DOCKER_TAG
             docker push $ECR_REPO/$IMAGE_NAME:$DOCKER_TAG
 
-  deploy-development:
-    executor: python
-    environment:
-      SENTRY_ENVIRONMENT: "development"
-    steps:
-      - queue/until_front_of_line:
-          time: "10"
-          consider-branch: false
-          dont-quit: true
-      - deploy:
-          docker_tag: "dev-$CIRCLE_SHA1"
-          space: "development"
-          environment_key: "dev"
-          app_domain_prefix: "dev"
-      - tariff/sentry-release:
-          environment: "development"
-
-  deploy-staging:
-    executor: python
-    environment:
-      SENTRY_ENVIRONMENT: "staging"
-    steps:
-      - queue/until_front_of_line:
-          time: '10'
-          consider-branch: true
-          dont-quit: true
-      - deploy:
-          docker_tag: $CIRCLE_SHA1
-          space: "staging"
-          environment_key: "staging"
-          app_domain_prefix: "staging"
-      - tariff/sentry-release:
-          environment: "staging"
-
-  deploy-release-to-staging:
-    executor: python
-    steps:
-      - deploy:
-          docker_tag: $CIRCLE_TAG
-          space: "staging"
-          environment_key: "staging"
-          app_domain_prefix: "staging"
-
   deploy-production:
     executor: python
     environment:
@@ -425,13 +382,6 @@ workflows:
           ssm_parameter: "/development/SEARCH_QUERY_PARSER_ECR_URL"
           <<: *filter-not-main
 
-      - deploy-development:
-          context: trade-tariff
-          requires:
-            - build-dev
-            - test
-          <<: *filter-not-main
-
       - apply-terraform:
           name: apply-terraform-dev
           context: trade-tariff-terraform-aws-development
@@ -448,7 +398,7 @@ workflows:
           url: https://dev.trade-tariff.service.gov.uk
           yarn_run: dev-tariff-search-query-parser-smoketests
           requires:
-            - deploy-development
+            - apply-terraform-dev
           <<: *filter-not-main
 
   deploy-to-staging:
@@ -488,19 +438,13 @@ workflows:
             - build-and-push-live
           <<: *filter-main
 
-      - deploy-staging:
-          context: trade-tariff
-          requires:
-            - build-live
-          <<: *filter-main
-
       - tariff/smoketests:
           name: smoketest-staging
           context: trade-tariff
           url: https://staging.trade-tariff.service.gov.uk
           yarn_run: staging-tariff-duty-calculator-smoketests
           requires:
-            - deploy-staging
+            - apply-terraform-staging
           <<: *filter-main
 
   deploy-to-production:
