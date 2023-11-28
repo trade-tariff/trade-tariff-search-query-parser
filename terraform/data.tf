@@ -38,3 +38,11 @@ data "aws_s3_bucket" "synonym_packages" {
 data "aws_kms_key" "opensearch_key" {
   key_id = "alias/opensearch-key"
 }
+
+data "aws_secretsmanager_secret" "sentry_dsn" {
+  name = "search-query-parser-sentry-dsn"
+}
+
+data "aws_kms_key" "secretsmanager_key" {
+  key_id = "alias/secretsmanager-key"
+}
