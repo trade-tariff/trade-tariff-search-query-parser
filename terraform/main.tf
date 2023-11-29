@@ -25,8 +25,13 @@ module "service" {
   memory = var.memory
 
   task_role_policy_arns = [
-    aws_iam_policy.buckets.arn
+    aws_iam_policy.buckets.arn,
   ]
+
+  execution_role_policy_arns = [
+    aws_iam_policy.secrets.arn
+  ]
+
 
   private_dns_namespace = "tariff.internal"
 
@@ -62,6 +67,17 @@ module "service" {
     {
       name  = "SPELLING_CORRECTOR_BUCKET_NAME"
       value = data.aws_s3_bucket.spelling_corrector.bucket
-    }
+    },
+    {
+      name  = "SENTRY_ENVIRONMENT"
+      value = var.environment
+    },
+  ]
+
+  service_secrets_config = [
+    {
+      name      = "SENTRY_DSN"
+      valueFrom = data.aws_secretsmanager_secret.sentry_dsn.arn
+    },
   ]
 }
