@@ -37,6 +37,10 @@ module "service" {
 
   service_environment_config = [
     {
+      name  = "ENABLE_JSON_LOGGING"
+      value = "true"
+    },
+    {
       name  = "EXPAND_EQUIVALENT_SYNONYMS"
       value = "false"
     },
