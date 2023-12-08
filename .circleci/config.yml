@@ -25,9 +25,7 @@ filter-release: &filter-release
 orbs:
   aws-cli: circleci/aws-cli@2.0.3
   terraform: circleci/terraform@3.2.1
-  cloudfoundry: circleci/cloudfoundry@1.0
   gh: circleci/github-cli@1.0
-  queue: eddiewebb/queue@1.6.4
   slack: circleci/slack@4.3.0
   tariff: trade-tariff/trade-tariff-ci-orb@0
 
@@ -45,116 +43,6 @@ executors:
     docker:
       - image: cimg/python:3.11.2
     resource_class: small
-
-commands:
-  deploy:
-    parameters:
-      docker_tag:
-        type: string
-      space:
-        type: string
-      environment_key:
-        type: string
-      app_domain_prefix:
-        type: string
-    steps:
-      - checkout
-      - tariff/cf-install:
-          space: << parameters.space >>
-      - tariff/deploy-dark-app:
-          aws_access_key_id: "$AWS_ACCESS_KEY_ID"
-          aws_secret_access_key: "$AWS_SECRET_ACCESS_KEY"
-          cf_app: tariff-search-query-parser
-          docker_image: tariff-search-query-parser
-          docker_tag: << parameters.docker_tag >>
-          ecr_repo: "$ECR_REPO"
-          environment_key: << parameters.environment_key >>
-          space: << parameters.space >>
-
-      - run:
-          name: "Map dark routes"
-          command: |
-            # Map dark route (private)
-            cf map-route  \
-              "$CF_APP-<< parameters.environment_key >>-dark" \
-              apps.internal \
-              -n "$CF_APP-<< parameters.environment_key >>-dark"
-
-            # Enable routing from the backend to this app
-            cf add-network-policy \
-              "$CF_BACKEND_UK_APP-<< parameters.environment_key >>" \
-              "$CF_APP-<< parameters.environment_key >>-dark" \
-              --protocol tcp \
-              --port 8080
-
-            cf add-network-policy \
-              "$CF_BACKEND_XI_APP-<< parameters.environment_key >>" \
-              "$CF_APP-<< parameters.environment_key >>-dark" \
-              --protocol tcp \
-              --port 8080
-
-      - run:
-          name: "Verify new version is working on dark URL."
-          command: |
-            sleep 4
-            APP_NAME="$CF_APP-<< parameters.environment_key >>-dark"
-            HTTPCODE=$(cf ssh $APP_NAME -c 'curl -s -o /dev/null -w "%{http_code}" http://localhost:8080/api/search/healthcheck')
-
-            if [ "$HTTPCODE" -ne 200 ];then
-              echo "dark route not available, failing deploy ($HTTPCODE)"
-              cf logs "$CF_APP-<< parameters.environment_key >>-dark" --recent
-              cf delete -f "$CF_APP-<< parameters.environment_key >>-dark"
-              exit 1
-            fi
-
-      - run:
-          name: "Switch dark app to live"
-          command: |
-            # Send "real" url to new version
-            cf unmap-route \
-              "$CF_APP-<< parameters.environment_key >>-dark" \
-              apps.internal \
-              -n "$CF_APP-<< parameters.environment_key >>-dark"
-
-            # Start sending traffic to new version
-            cf map-route \
-              "$CF_APP-<< parameters.environment_key >>-dark" \
-              apps.internal \
-              -n "$CF_APP-<< parameters.environment_key >>"
-
-            cf map-route \
-              "$CF_APP-<< parameters.environment_key >>-dark" \
-              "<< parameters.app_domain_prefix >>.trade-tariff.service.gov.uk" \
-              --path "/api/search"
-
-            # Stop sending traffic to previous version
-            cf unmap-route \
-              "$CF_APP-<< parameters.environment_key >>" \
-              apps.internal \
-              -n "$CF_APP-<< parameters.environment_key >>"
-
-            cf unmap-route \
-              "$CF_APP-<< parameters.environment_key >>" \
-              "<< parameters.app_domain_prefix >>.trade-tariff.service.gov.uk" \
-              --path "/api/search"
-
-            # stop previous version
-            cf stop "$CF_APP-<< parameters.environment_key >>"
-
-            # delete previous version
-            cf delete "$CF_APP-<< parameters.environment_key >>" -f
-
-            # Switch name of "dark" version to claim correct name
-            cf rename "$CF_APP-<< parameters.environment_key >>-dark" "$CF_APP-<< parameters.environment_key >>"
-
-      - slack/notify:
-          channel: deployments
-          event: fail
-          template: basic_fail_1
-      - slack/notify:
-          channel: deployments
-          event: pass
-          template: basic_success_1
 
 jobs:
   lint:
@@ -217,53 +105,6 @@ jobs:
           command: |
             . venv/bin/activate
             pytest --cov --cov-fail-under 92
-
-  build:
-    parameters:
-      dev-build:
-        default: false
-        type: boolean
-    executor: python
-    steps:
-      - checkout
-      - setup_remote_docker:
-          version: 20.10.11
-          docker_layer_caching: true
-      - aws-cli/install
-      - run:
-          name: "Set docker tag"
-          command: |
-            echo "export DOCKER_TAG=<<# parameters.dev-build >>dev-<</ parameters.dev-build >>${CIRCLE_SHA1}" >> $BASH_ENV
-      - run:
-          name: "Build Docker image"
-          command: |
-            export GIT_NEW_REVISION=$(git rev-parse --short HEAD)
-            echo $GIT_NEW_REVISION >REVISION
-            docker build -t $CF_APP:$DOCKER_TAG .
-      - run:
-          name: "Push image to ECR"
-          command: |
-            export IMAGE_NAME=$CF_APP
-            aws ecr get-login-password --region eu-west-2 | docker login --username AWS --password-stdin $ECR_REPO
-            docker tag $IMAGE_NAME:$DOCKER_TAG $ECR_REPO/$IMAGE_NAME:$DOCKER_TAG
-            docker push $ECR_REPO/$IMAGE_NAME:$DOCKER_TAG
-
-  deploy-production:
-    executor: python
-    environment:
-      SENTRY_ENVIRONMENT: "production"
-    steps:
-      - deploy:
-          docker_tag: $CIRCLE_TAG
-          space: "production"
-          environment_key: "production"
-          app_domain_prefix: "www"
-      - tariff/sentry-release:
-          environment: "production"
-      - tariff/notify-production-release:
-          app-name: Search Query Parser
-          slack-channel: trade_tariff
-          release-tag: $CIRCLE_TAG
 
   write-docker-tag:
     parameters:
@@ -331,6 +172,18 @@ jobs:
           path: terraform/
           backend_config_file: backends/<< parameters.environment >>.tfbackend
           var_file: config_<< parameters.environment >>.tfvars
+          lock-timeout: 5m
+      - run:
+          name: Add curl
+          command: apk --no-cache add curl jq
+      - slack/notify:
+          channel: deployments
+          event: fail
+          template: basic_fail_1
+      - slack/notify:
+          channel: deployments
+          event: pass
+          template: basic_success_1
 
 workflows:
   version: 2
@@ -366,12 +219,6 @@ workflows:
           requires:
             - write-docker-tag-dev
             - fmt-terraform-dev
-          <<: *filter-not-main
-
-      - build:
-          name: build-dev
-          context: trade-tariff
-          dev-build: true
           <<: *filter-not-main
 
       - tariff/build-and-push:
@@ -414,11 +261,6 @@ workflows:
           requires:
             - write-docker-tag-staging
           <<: *filter-not-main
-
-      - build:
-          name: build-live
-          context: trade-tariff
-          <<: *filter-main
 
       - tariff/build-and-push:
           name: build-and-push-live
@@ -471,10 +313,6 @@ workflows:
           requires:
             - promote-to-production?
           <<: *filter-main
-
-      - deploy-production:
-          context: trade-tariff
-          <<: *filter-release
 
       - write-docker-tag:
           name: write-docker-tag-prod-release
