@@ -309,7 +309,7 @@ workflows:
 
       - tariff/create-production-release:
           context: trade-tariff
-          image-name: tariff-search-query-parser
+          image-name: tariff-search-query-parser-production
           requires:
             - promote-to-production?
           <<: *filter-main
