@@ -26,3 +26,6 @@ shell:
 		$(COMMON_ENV) \
 		--no-healthcheck \
 		-it $(IMAGE_NAME) /bin/sh
+
+stop:
+	docker stop $(IMAGE_NAME)
