@@ -3,7 +3,7 @@ FROM python:3.11-slim-bullseye
 WORKDIR /app
 
 RUN apt-get update \
-    && apt-get install --assume-yes --no-install-recommends --quiet curl gcc \
+    && apt-get install --assume-yes --no-install-recommends --quiet gcc netcat \
     && apt-get clean
 
 COPY requirements.txt requirements.txt
