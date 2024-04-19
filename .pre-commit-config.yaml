@@ -1,11 +1,4 @@
 ---
-files: |
-  (?x)^(
-    ^terraform\/\S+ |
-    .circleci\/\S+  |
-    .pre\-commit\-config.yaml
-  )
-
 repos:
   - repo: https://github.com/antonbabenko/pre-commit-terraform
     rev: v1.83.5
@@ -13,17 +6,11 @@ repos:
       - id: terraform_fmt
       - id: terraform_validate
       - id: terraform_tflint
-      - id: terraform_tfsec
       - id: terraform_docs
         args:
           - --hook-config=--add-to-existing-file=true
           - --hook-config=--path-to-file=README.md
           - --hook-config=--create-file-if-not-exist=true
-  - repo: https://github.com/psf/black
-    rev: 23.11.0
-    hooks:
-      - id: black
-        language_version: python3.11
 
   - repo: https://github.com/pre-commit/pre-commit-hooks
     rev: v4.5.0
@@ -31,3 +18,24 @@ repos:
       - id: trailing-whitespace
       - id: end-of-file-fixer
       - id: check-yaml
+
+  - repo: https://github.com/zahorniak/pre-commit-circleci.git
+    rev: v0.6
+    hooks:
+      - id: circleci_validate
+        args:
+          - --org-id=da607531-93bb-4321-90ed-08710434ce1c
+
+  - repo: https://github.com/gitleaks/gitleaks
+    rev: v8.16.1
+    hooks:
+      - id: gitleaks
+
+  - repo: https://github.com/igorshubovych/markdownlint-cli
+    rev: v0.38.0
+    hooks:
+      - id: markdownlint
+        args:
+          - "--ignore"
+          - terraform
+          - "--fix"
